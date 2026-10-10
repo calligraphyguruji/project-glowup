@@ -76,6 +76,12 @@ export interface AuditResponse {
   interviewDefense: InterviewDefenseItem[];
   generatedAt: string;
   executionMode: "live_ai" | "heuristic_fallback" | "cached_demo";
+  detectedStack?: {
+    type: string;
+    frameworks: string[];
+    databases: string[];
+    endpointsCount: number;
+  };
 }
 
 export interface ApiErrorResponse {

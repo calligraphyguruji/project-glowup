@@ -109,24 +109,56 @@ function runUnitTests() {
   const cleanFindings = runStaticAudit(cleanFiles, "amazon");
   assert(cleanFindings.length > 0 && cleanFindings[0].severity === "optimization", "Returns optimization note when no violations exist");
 
-  // 5. Gemini Heuristic Fallback & Structured Schema Verification
-  console.log("\n[5/5] Testing AI Synthesis & Structured Fallback Safety...");
-  const mockOverview = {
-    owner: "student",
-    repo: "fintech-app",
-    defaultBranch: "main",
-    totalFilesDiscovered: 12,
-    filesIngested: 2,
-    primaryLanguage: "TypeScript",
-  };
-  const fallbackAudit = generateFallbackAudit(mockOverview, COMPANY_PROFILES.razorpay, razorpayFindings);
+  // 5. Dynamic Repository Intelligence & Stack Differentiation
+  console.log("\n[5/6] Testing Dynamic Stack Differentiation (React vs Backend)...");
+  const reactFiles: RepoFile[] = [
+    {
+      path: "package.json",
+      content: JSON.stringify({ dependencies: { react: "^18.2.0", "react-dom": "^18.2.0" } }),
+      size: 100,
+      score: 95,
+    },
+    {
+      path: "src/App.tsx",
+      content: "export function App() { return <div>Hello World</div>; }",
+      size: 60,
+      score: 90,
+    },
+  ];
+  const reactAudit = generateFallbackAudit(
+    { owner: "facebook", repo: "react-app", defaultBranch: "main", totalFilesDiscovered: 2, filesIngested: 2 },
+    reactFiles,
+    COMPANY_PROFILES.amazon,
+    []
+  );
+  assert(reactAudit.detectedStack?.type === "frontend_react", "Detects React frontend stack");
+  assert(reactAudit.architectureComparison.currentMermaid.includes("React Application"), "Generates React Component Architecture (not generic backend DB)");
+  assert(!reactAudit.stressTestScript.code.includes("/api/checkout"), "Does NOT fabricate /api/checkout for React frontend repository");
+  assert(reactAudit.interviewDefense[0].question.includes("React"), "Generates React-specific interview questions");
 
-  assert(fallbackAudit.overallScore > 0 && fallbackAudit.overallScore <= 100, "Calculates valid bounded overall score");
-  assert(fallbackAudit.findings.length >= 2, "Includes static flags and domain concurrency findings");
-  assert(fallbackAudit.architectureComparison.currentMermaid.includes("graph TD"), "Generates valid Before Mermaid graph");
-  assert(fallbackAudit.architectureComparison.targetMermaid.includes("graph TD"), "Generates valid Target Mermaid graph");
-  assert(fallbackAudit.stressTestScript.code.includes("fetch"), "Provides runnable HTTP concurrency script");
-  assert(fallbackAudit.interviewDefense.length >= 2, "Provides company-tailored interview drill items");
+  // Backend with actual discovered route
+  const backendFiles: RepoFile[] = [
+    {
+      path: "package.json",
+      content: JSON.stringify({ dependencies: { express: "^4.18.0", pg: "^8.0.0" } }),
+      size: 100,
+      score: 95,
+    },
+    {
+      path: "server.js",
+      content: "const express = require('express'); const app = express(); app.post('/api/orders', (req, res) => res.json({ id: 1 }));",
+      size: 120,
+      score: 90,
+    },
+  ];
+  const backendAudit = generateFallbackAudit(
+    { owner: "student", repo: "order-service", defaultBranch: "main", totalFilesDiscovered: 2, filesIngested: 2 },
+    backendFiles,
+    COMPANY_PROFILES.razorpay,
+    []
+  );
+  assert(backendAudit.detectedStack?.type === "node_backend", "Detects Node backend stack");
+  assert(backendAudit.stressTestScript.code.includes("/api/orders"), "Targets actual discovered endpoint '/api/orders' in concurrency test");
 
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);

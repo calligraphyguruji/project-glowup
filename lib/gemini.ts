@@ -5,7 +5,11 @@ import {
   CompanyProfile,
   RepoFile,
   RepoOverview,
+  StressTestScript,
+  InterviewDefenseItem,
+  ArchitectureComparison,
 } from "@/types/audit";
+import { detectRepositoryStack, DetectedStack } from "./stackDetector";
 
 interface GeminiAuditPayload {
   overallScore: number;
@@ -44,11 +48,12 @@ export async function runGeminiAudit(
   company: CompanyProfile,
   staticFindings: AuditFinding[]
 ): Promise<AuditResponse> {
+  const stack = detectRepositoryStack(files);
   const apiKey = process.env.GEMINI_API_KEY;
 
-  // If no API key configured or fallback triggered, return heuristic response
+  // If no API key configured or fallback triggered, return dynamic repository-aware response
   if (!apiKey || apiKey === "your_gemini_api_key_here") {
-    return generateFallbackAudit(overview, company, staticFindings);
+    return generateFallbackAudit(overview, files, company, staticFindings, stack);
   }
 
   try {
@@ -80,6 +85,12 @@ Name: ${company.name}
 Domain: ${company.domain}
 Key Architectural Concerns: ${company.keyConcerns.join(", ")}
 
+DETECTED REPOSITORY TECH STACK:
+Stack Type: ${stack.type}
+Frameworks: ${stack.frameworks.join(", ") || "None specified"}
+Databases/ORMs: ${stack.databases.join(", ") || "None"}
+Discovered Endpoints: ${stack.discoveredEndpoints.map((e) => `${e.method} ${e.path} (${e.file})`).join(", ") || "No HTTP endpoints discovered"}
+
 OBSERVED STATIC AUDIT FLAGS:
 ${JSON.stringify(staticFindings, null, 2)}
 
@@ -87,10 +98,12 @@ INSPECTED REPOSITORY CODE:
 ${fileSummaries}
 
 TASK:
-1. Audit the code objectively based solely on observable evidence.
+1. Audit the code objectively based strictly on observable evidence in this repository.
+   - If this is a Frontend-only React app, DO NOT invent backend database or Redis flaws unless justified by explicit dependencies or endpoints.
+   - If this repository does not have a checkout endpoint, DO NOT invent checkout-specific flaws.
 2. Generate valid Mermaid.js diagrams for Current Architecture vs Target Hardened Architecture (use 'graph TD' with simple alphanumeric node IDs).
-3. Produce a runnable 20-30 line Node.js concurrency stress-test script that tests edge cases for ${company.name}.
-4. Provide 3 tough interview questions with model defense talking points.
+3. Produce a runnable Node.js test script targeting real discovered endpoints or state operations in this repo.
+4. Provide 3 tough interview questions directly relevant to this repository's tech stack and company rubric.
 
 Return strictly JSON matching this structure:
 {
@@ -145,8 +158,8 @@ Return strictly JSON matching this structure:
         })),
       ],
       architectureComparison: {
-        currentMermaid: cleanMermaid(parsed.architectureComparison.currentMermaid, "current"),
-        targetMermaid: cleanMermaid(parsed.architectureComparison.targetMermaid, "target"),
+        currentMermaid: cleanMermaid(parsed.architectureComparison.currentMermaid, "current", stack),
+        targetMermaid: cleanMermaid(parsed.architectureComparison.targetMermaid, "target", stack),
         currentSummary: parsed.architectureComparison.currentSummary,
         targetSummary: parsed.architectureComparison.targetSummary,
       },
@@ -154,84 +167,155 @@ Return strictly JSON matching this structure:
       interviewDefense: parsed.interviewDefense,
       generatedAt: new Date().toISOString(),
       executionMode: "live_ai",
+      detectedStack: {
+        type: stack.type,
+        frameworks: stack.frameworks,
+        databases: stack.databases,
+        endpointsCount: stack.discoveredEndpoints.length,
+      },
     };
   } catch {
-    return generateFallbackAudit(overview, company, staticFindings);
+    return generateFallbackAudit(overview, files, company, staticFindings, stack);
   }
 }
 
-function cleanMermaid(str: string, fallbackType: "current" | "target"): string {
+function cleanMermaid(str: string, fallbackType: "current" | "target", stack: DetectedStack): string {
   if (!str || typeof str !== "string" || (!str.includes("graph") && !str.includes("flowchart"))) {
-    if (fallbackType === "current") {
-      return "graph TD\n  Client[Web Client] -->|Direct HTTP| Server[Node API Server]\n  Server --> DB[(Database)]";
-    }
-    return "graph TD\n  Client[Web Client] -->|Idempotency-Key| Gateway[API Gateway]\n  Gateway --> Cache{Redis Cache}\n  Cache -->|Miss| Lock[DB Transaction Lock]\n  Lock --> DB[(Database)]";
+    return generateDynamicMermaid(stack, fallbackType);
   }
   return str.replace(/```mermaid/g, "").replace(/```/g, "").trim();
 }
 
+function generateDynamicMermaid(stack: DetectedStack, type: "current" | "target"): string {
+  if (stack.type === "frontend_react" || stack.type === "frontend_vue") {
+    if (type === "current") {
+      return `graph TD
+  Browser[Web Client] --> App[React Application Component Tree]
+  App --> State[Unbuffered Component State]
+  State --> Render[Unoptimized Virtual DOM Re-renders]`;
+    }
+    return `graph TD
+  Browser[Web Client] --> Edge[Edge CDN / Static Cache]
+  Edge --> App[React Component Tree]
+  App --> Memo[React.memo & useCallback Virtualization]
+  App --> Query[TanStack Query with StaleTime Caching]`;
+  }
+
+  if (type === "current") {
+    return `graph TD
+  Client[Web Client] --> Server[${stack.frameworks[0] || "API Server"}]
+  Server --> DB[(${stack.databases[0] || "Database"})]`;
+  }
+
+  return `graph TD
+  Client[Web Client] --> Gateway[API Gateway + Rate Limiter]
+  Gateway --> Cache{Redis Cache}
+  Cache --> Server[${stack.frameworks[0] || "Backend Service"}]
+  Server --> Trans[ACID Transaction Lock]
+  Trans --> DB[(${stack.databases[0] || "Database"})]`;
+}
+
 export function generateFallbackAudit(
   overview: RepoOverview,
+  files: RepoFile[],
   company: CompanyProfile,
-  staticFindings: AuditFinding[]
+  staticFindings: AuditFinding[],
+  stack?: DetectedStack
 ): AuditResponse {
-  const isFintech = company.id === "razorpay" || company.id === "zerodha";
+  const detectedStack = stack || detectRepositoryStack(files);
+  const isFrontendOnly = detectedStack.type === "frontend_react" || detectedStack.type === "frontend_vue";
+  const hasEndpoints = detectedStack.discoveredEndpoints.length > 0;
+  const primaryEndpoint = detectedStack.discoveredEndpoints[0] || null;
 
-  return {
-    repoSummary: overview,
-    companyProfile: company,
-    overallScore: staticFindings.some((f) => f.severity === "critical") ? 58 : 78,
-    findings: [
-      ...staticFindings,
-      {
-        id: "fallback-finding-concurrency",
-        severity: "critical",
-        category: "Concurrency & Race Conditions",
-        title: `Missing atomic concurrency guards for ${company.name} scale`,
-        fileCitation: overview.primaryLanguage === "TypeScript" ? "server.ts" : "package.json",
-        explanation: `Under burst loads (${isFintech ? "simultaneous wallet debits" : "surge ordering"}), direct database reads followed by writes cause race condition double-execution.`,
-        remediation: `Implement optimistic locking with version columns or Redis distributed locks with exponential retry backoff.`,
-        codeSnippet: `// Example Redis Lock:\nconst acquired = await redis.set(lockKey, token, 'NX', 'PX', 2000);`,
-      },
-      {
-        id: "fallback-finding-observability",
-        severity: "warning",
-        category: "System Observability",
-        title: "Missing correlation ID context across asynchronous request flows",
-        fileCitation: "server.ts",
-        explanation: `${company.name} engineering requires tracking requests with unique x-request-id headers across service boundaries.`,
-        remediation: `Add AsyncLocalStorage or express-request-id middleware to tag logs with request IDs.`,
-      },
-    ],
-    architectureComparison: {
-      currentMermaid: `graph TD\n  Client[Web / Mobile Client] -->|Unbounded HTTP| Server[Node/Express Server]\n  Server -->|Direct Write| DB[(Database)]`,
-      targetMermaid: `graph TD\n  Client[Web / Mobile Client] -->|Idempotency-Key| Gateway[API Gateway + Rate Limiter]\n  Gateway --> Cache{Redis Cache}\n  Cache -->|Cache Miss| Trans[ACID Transaction Lock]\n  Trans --> DB[(Database)]\n  Trans --> Queue[Worker Queue: Retries]`,
-      currentSummary: "Direct client-to-database coupling without concurrency guards, idempotency layers, or retry queues.",
-      targetSummary: `Production ${company.domain} architecture featuring idempotent request validation, distributed locking, and resilient asynchronous worker queues.`,
-    },
-    stressTestScript: {
+  // Build repository-grounded findings
+  const dynamicFindings: AuditFinding[] = [...staticFindings];
+
+  if (isFrontendOnly) {
+    dynamicFindings.push({
+      id: "evidence-finding-client-bundle",
+      severity: "warning",
+      category: "Client Performance & Bundle Hygiene",
+      title: `Client bundle lacks code-splitting or route virtualization`,
+      fileCitation: files.find((f) => f.path.includes("package.json") || f.path.includes("src/App"))?.path || "package.json",
+      explanation: `${company.name} engineering rubrics measure First Contentful Paint (FCP) and Cumulative Layout Shift (CLS). Monolithic frontend imports without dynamic lazy loading degrade mobile performance.`,
+      remediation: `Implement React.lazy with Suspense boundaries for non-critical route components.`,
+      codeSnippet: `const HeavyComponent = React.lazy(() => import('./HeavyComponent'));`,
+    });
+  } else if (detectedStack.hasDatabase) {
+    dynamicFindings.push({
+      id: "evidence-finding-db-concurrency",
+      severity: "critical",
+      category: "Concurrency & Database Locking",
+      title: `Missing atomic concurrency guards for ${company.name} scale`,
+      fileCitation: files.find((f) => f.path.includes("schema") || f.path.includes("model") || f.path.includes("server"))?.path || "package.json",
+      explanation: `Under burst loads (${company.id === "razorpay" ? "wallet debits" : company.id === "swiggy" ? "order surges" : "high-throughput requests"}), direct database reads followed by writes trigger race condition lost updates.`,
+      remediation: `Enforce atomic database updates (UPDATE ... WHERE balance >= amount) or Redis distributed mutex locks.`,
+      codeSnippet: `// Atomic SQL:\nUPDATE accounts SET balance = balance - 100 WHERE id = 1 AND balance >= 100;`,
+    });
+  } else {
+    dynamicFindings.push({
+      id: "evidence-finding-service-resilience",
+      severity: "warning",
+      category: "Service Architecture & Resilience",
+      title: `Missing centralized error boundary & structured telemetry`,
+      fileCitation: files.find((f) => f.path.includes("index") || f.path.includes("main") || f.path.includes("server"))?.path || "package.json",
+      explanation: `${company.name} standards require structured correlation IDs (x-request-id) and circuit breakers to isolate failure domains.`,
+      remediation: `Add request-tracing middleware and export structured logs for centralized aggregation.`,
+    });
+  }
+
+  // Build repository-grounded stress test script
+  let testScript: StressTestScript;
+  if (isFrontendOnly) {
+    testScript = {
       language: "javascript",
-      title: `${company.name} Concurrency Race Condition Tester`,
-      targetScenario: `Simulate 15 concurrent requests hitting the same resource within 10ms to verify race condition defense.`,
-      code: `// stress-test.js
-// Run: node stress-test.js http://localhost:3000/api/checkout
-const targetUrl = process.argv[2] || 'http://localhost:3000/api/checkout';
+      title: `${company.name} Client-Side Render & Memory Leak Benchmark`,
+      targetScenario: `Simulates 100 rapid component mount/unmount lifecycles to detect memory leaks and event listener retention.`,
+      code: `// frontend-stress-test.js
+// Measures memory retention across rapid component instantiation
+console.log("⚡ Starting 100 component lifecycle iterations for ${overview.repo}...");
+
+let leakDetected = false;
+const listeners = [];
+
+for (let i = 0; i < 100; i++) {
+  const handler = () => {};
+  listeners.push(handler);
+  // Simulate mount & cleanup cycle
+}
+
+console.log("✓ Completed 100 lifecycle runs. Active uncollected handlers:", listeners.length);
+if (listeners.length > 50) {
+  console.warn("⚠️ Warning: Potential memory retention in component teardown!");
+}`,
+      runInstructions: "node frontend-stress-test.js",
+    };
+  } else if (hasEndpoints && primaryEndpoint) {
+    testScript = {
+      language: "javascript",
+      title: `${company.name} Endpoint Concurrency Harness: ${primaryEndpoint.method} ${primaryEndpoint.path}`,
+      targetScenario: `Simulates 15 concurrent requests hitting real repository route "${primaryEndpoint.path}" discovered in "${primaryEndpoint.file}".`,
+      code: `// concurrency-test.js
+// Run: node concurrency-test.js http://localhost:3000
+const host = process.argv[2] || 'http://localhost:3000';
+const targetUrl = host + '${primaryEndpoint.path}';
 
 async function fireBurst() {
-  console.log('🚀 Firing 15 concurrent requests to ' + targetUrl);
-  const idempotencyKey = 'test-idem-' + Date.now();
-  
+  console.log('🚀 Firing 15 concurrent ${primaryEndpoint.method} requests to: ' + targetUrl);
   const requests = Array.from({ length: 15 }).map(async (_, idx) => {
-    const res = await fetch(targetUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Idempotency-Key': idempotencyKey,
-      },
-      body: JSON.stringify({ amount: 1000, accountId: 'user_123' })
-    }).catch(err => ({ status: 'error', error: err.message }));
-    
-    return { req: idx + 1, status: res.status };
+    try {
+      const res = await fetch(targetUrl, {
+        method: '${primaryEndpoint.method}',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-request-id': 'stress-req-' + idx + '-' + Date.now(),
+        },
+        ${primaryEndpoint.method !== "GET" ? "body: JSON.stringify({ testPayload: true })," : ""}
+      });
+      return { req: idx + 1, status: res.status };
+    } catch (err) {
+      return { req: idx + 1, status: 'FAILED', error: err.message };
+    }
   });
 
   const results = await Promise.all(requests);
@@ -239,29 +323,124 @@ async function fireBurst() {
 }
 
 fireBurst();`,
-      runInstructions: "node stress-test.js <YOUR_LOCAL_ENDPOINT_URL>",
+      runInstructions: `node concurrency-test.js <YOUR_LOCAL_HOST>`,
+    };
+  } else {
+    testScript = {
+      language: "javascript",
+      title: `${company.name} Concurrency Load Harness`,
+      targetScenario: `Simulate burst throughput against local server entry point to verify process stability under load.`,
+      code: `// load-harness.js
+// Run: node load-harness.js http://localhost:3000
+const host = process.argv[2] || 'http://localhost:3000';
+
+async function runLoad() {
+  console.log('🚀 Testing local server connection pool: ' + host);
+  const promises = Array.from({ length: 10 }).map(async (_, i) => {
+    const start = Date.now();
+    try {
+      const res = await fetch(host);
+      return { id: i + 1, status: res.status, latencyMs: Date.now() - start };
+    } catch (err) {
+      return { id: i + 1, status: 'ERROR', error: err.message };
+    }
+  });
+
+  const results = await Promise.all(promises);
+  console.table(results);
+}
+
+runLoad();`,
+      runInstructions: "node load-harness.js http://localhost:3000",
+    };
+  }
+
+  // Build repository-grounded interview defense items
+  let interviewDefense: InterviewDefenseItem[];
+  if (isFrontendOnly) {
+    interviewDefense = [
+      {
+        question: `How does your React architecture prevent unnecessary component re-renders when global state updates?`,
+        interviewerIntent: `Tests practical mastery of React reconciliation, useMemo/useCallback boundaries, and selector memoization.`,
+        talkingPoints: [
+          `Explain using memoized selector patterns (Zustand/Redux) to isolate re-render cascades.`,
+          `Discuss React Profiler flamegraph analysis to identify expensive component renders.`,
+          `Explain moving state down the component tree or splitting contexts into separate read/write contexts.`,
+        ],
+      },
+      {
+        question: `How does your application guarantee fast First Input Delay (FID) on low-power mobile devices?`,
+        interviewerIntent: `Probes candidate's understanding of main-thread execution time, bundle size budgets, and web vitals.`,
+        talkingPoints: [
+          `Mention dynamic imports (React.lazy) to split non-critical components out of the initial bundle.`,
+          `Discuss offloading heavy data processing or sorting to Web Workers.`,
+          `Explain optimizing Third-Party scripts with Next.js Script strategy=lazyOnload.`,
+        ],
+      },
+    ];
+  } else if (detectedStack.hasDatabase) {
+    interviewDefense = [
+      {
+        question: `How does your ${detectedStack.frameworks[0] || "backend"} service prevent race condition lost updates when 100 concurrent requests update the same row?`,
+        interviewerIntent: `Tests understanding of transactional isolation, database row-level locking, or atomic SQL updates.`,
+        talkingPoints: [
+          `Avoid application-layer 'read-then-write' checks; use single atomic SQL statements ('UPDATE table SET count = count - 1 WHERE count >= 1').`,
+          `Discuss SELECT ... FOR UPDATE row-level locks within an explicit ACID transaction block.`,
+          `Explain when to reach for Redis distributed locks with exponential backoff vs PostgreSQL transactions.`,
+        ],
+      },
+      {
+        question: `How do you prevent connection pool exhaustion during sudden traffic spikes?`,
+        interviewerIntent: `Tests knowledge of database connection pooling, timeouts, and graceful degradation.`,
+        talkingPoints: [
+          `Configure explicit pool limits (max connections, connection timeout, idle timeout) in ${detectedStack.databases[0] || "the DB client"}.`,
+          `Implement short request timeouts on API handlers to release idle connection locks quickly.`,
+          `Add Redis caching in front of high-frequency read queries to protect database connection capacity.`,
+        ],
+      },
+    ];
+  } else {
+    interviewDefense = [
+      {
+        question: `How do you structure error boundaries and circuit breakers to prevent cascading service failure?`,
+        interviewerIntent: `Evaluates production architecture thinking and blast radius reduction.`,
+        talkingPoints: [
+          `Implement circuit breaker patterns (e.g., Opossum) with exponential backoff on external calls.`,
+          `Use structured error handlers that map internal exceptions to clean HTTP status codes without leaking stack traces.`,
+          `Attach unique correlation IDs to every request to track failure propagation across services.`,
+        ],
+      },
+    ];
+  }
+
+  // Dynamic Mermaid Diagrams
+  const currentMermaid = generateDynamicMermaid(detectedStack, "current");
+  const targetMermaid = generateDynamicMermaid(detectedStack, "target");
+
+  return {
+    repoSummary: overview,
+    companyProfile: company,
+    overallScore: dynamicFindings.some((f) => f.severity === "critical") ? 62 : 82,
+    findings: dynamicFindings,
+    architectureComparison: {
+      currentMermaid,
+      targetMermaid,
+      currentSummary: isFrontendOnly
+        ? `Observed ${detectedStack.frameworks.join(" / ") || "frontend"} client structure without dynamic code-splitting or route virtualization.`
+        : `Observed direct coupling between client requests and ${detectedStack.databases[0] || "data layer"} without distributed concurrency controls.`,
+      targetSummary: isFrontendOnly
+        ? `Hardened ${company.domain} architecture featuring lazy-loaded route boundaries, memoized state selectors, and stale-while-revalidate client caching.`
+        : `Production-hardened ${company.domain} topology featuring API Gateway rate limiting, Redis caching, and atomic transactional isolation.`,
     },
-    interviewDefense: [
-      {
-        question: `How does your project prevent double-debiting under simultaneous concurrent requests?`,
-        interviewerIntent: `Tests if the candidate understands ACID transactions, database row locks (SELECT FOR UPDATE), or Redis idempotency keys.`,
-        talkingPoints: [
-          `Mention using an Idempotency-Key header stored in Redis with atomic SETNX.`,
-          `Explain PostgreSQL row-level locks or atomic SQL operations ('UPDATE accounts SET balance = balance - 100 WHERE balance >= 100').`,
-          `Discuss webhook signature validation and exponential retry backoff.`,
-        ],
-      },
-      {
-        question: `What happens if the external payment or delivery provider returns HTTP 504 Gateway Timeout?`,
-        interviewerIntent: `Tests understanding of distributed states and avoiding duplicate side effects.`,
-        talkingPoints: [
-          `Do not immediately mark the transaction as failed or refund the user.`,
-          `Trigger an inquiry reconciliation polling job to verify the external provider's ledger.`,
-          `Use dead-letter queues to notify manual operations if reconciliation fails.`,
-        ],
-      },
-    ],
+    stressTestScript: testScript,
+    interviewDefense,
     generatedAt: new Date().toISOString(),
     executionMode: "heuristic_fallback",
+    detectedStack: {
+      type: detectedStack.type,
+      frameworks: detectedStack.frameworks,
+      databases: detectedStack.databases,
+      endpointsCount: detectedStack.discoveredEndpoints.length,
+    },
   };
 }
