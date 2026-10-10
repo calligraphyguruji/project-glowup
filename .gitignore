@@ -35,6 +35,20 @@ yarn-error.log*
 .planning/
 .planning/*
 
+# Internal Agent & Planning Specifications
+AGENTS.md
+agents.md
+DECISIONS.md
+decisions.md
+MEMORY.md
+memory.md
+PRD.md
+prd.md
+RULES.md
+rules.md
+TESTING.md
+testing.md
+
 # OS and IDE files
 .DS_Store
 *.suo
