@@ -5,6 +5,9 @@ export const metadata: Metadata = {
   title: "ProjectGlowUp AI — Engineering Audit for Student Codebases",
   description:
     "Auditing student repositories against target-company engineering standards (Razorpay, Swiggy, Zerodha, Amazon).",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
