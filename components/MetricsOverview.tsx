@@ -12,85 +12,80 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
   const optimizationCount = audit.findings.filter((f) => f.severity === "optimization").length;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {/* Metric 1: Readiness Score */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-white/5 flex flex-col justify-between shadow-sm">
+      <div className="p-3.5 rounded-xl bg-[#101114] border border-[#292A31] flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">SCORE INDEX</span>
+          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">PRODUCTION SCORE</span>
           {audit.scoreBreakdown ? (
-            <span className="px-1.5 py-0.2 rounded font-mono text-[10px] font-bold bg-surface-container-high text-primary-container border border-white/10">
+            <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-[#17181D] text-[#F5F5F6] border border-[#292A31]">
               GRADE {audit.scoreBreakdown.grade}
             </span>
           ) : (
-            <span className={`w-2 h-2 rounded-full ${audit.overallScore >= 70 ? "bg-tertiary-container shadow-[0_0_6px_rgba(55,248,170,0.8)]" : "bg-error shadow-[0_0_6px_rgba(255,59,48,0.8)]"}`}></span>
+            <span className={`w-2 h-2 rounded-full ${audit.overallScore >= 70 ? "bg-[#45D6A0]" : "bg-[#FF666B]"}`} />
           )}
         </div>
-        <div className="mt-2 flex items-baseline gap-1.5">
-          <span className={`font-mono text-3xl font-bold ${audit.overallScore >= 70 ? "text-tertiary-container" : "text-error"}`}>
+        <div className="mt-2.5 flex items-baseline gap-1.5">
+          <span className={`font-mono text-3xl font-extrabold ${audit.overallScore >= 70 ? "text-[#45D6A0]" : "text-[#FF666B]"}`}>
             {audit.overallScore}
           </span>
-          <span className="font-mono text-xs text-slate-500">/ 100</span>
+          <span className="font-mono text-xs text-[#747680]">/ 100</span>
         </div>
-        <span className={`font-mono text-[10px] font-semibold truncate uppercase mt-1 ${audit.overallScore >= 70 ? "text-tertiary-container" : "text-error"}`}>
-          {audit.overallScore >= 70 ? "PRODUCTION VIABLE" : "CRITICAL DEFECT RISKS"}
+        <span className={`font-mono text-[10px] font-semibold truncate uppercase mt-1.5 ${audit.overallScore >= 70 ? "text-[#45D6A0]" : "text-[#FF666B]"}`}>
+          {audit.overallScore >= 70 ? "PRODUCTION VIABLE" : "CRITICAL REMEDIATION REQUIRED"}
         </span>
       </div>
 
       {/* Metric 2: Defect Triage */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-white/5 flex flex-col justify-between shadow-sm">
+      <div className="p-3.5 rounded-xl bg-[#101114] border border-[#292A31] flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">DEFECT MATRIX</span>
-          <ShieldAlert className="w-3.5 h-3.5 text-error" />
+          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">VULNERABILITY MATRIX</span>
+          <ShieldAlert className="w-4 h-4 text-[#FF666B]" />
         </div>
-        <div className="flex items-center gap-1.5 mt-2">
-          <span className="px-1.5 py-0.5 rounded bg-error/20 text-error font-mono text-[11px] font-bold">
+        <div className="flex items-center gap-1.5 mt-2.5">
+          <span className="px-2 py-0.5 rounded bg-[#FF666B]/15 text-[#FF666B] font-mono text-xs font-bold border border-[#FF666B]/30">
             {criticalCount} CRIT
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-secondary/20 text-secondary font-mono text-[11px]">
+          <span className="px-2 py-0.5 rounded bg-[#F5BD50]/15 text-[#F5BD50] font-mono text-xs border border-[#F5BD50]/30">
             {warningCount} WARN
           </span>
-          <span className="px-1.5 py-0.5 rounded bg-surface-container-high text-slate-400 font-mono text-[11px]">
+          <span className="px-2 py-0.5 rounded bg-[#202127] text-[#A3A4AD] font-mono text-xs border border-[#292A31]">
             {optimizationCount} INF
           </span>
         </div>
-        <span className="font-mono text-[10px] text-slate-400 mt-1 uppercase tracking-wider">
-          {audit.findings.length} TOTAL VECTORS
+        <span className="font-mono text-[10px] text-[#747680] mt-1.5 uppercase tracking-wider">
+          {audit.findings.length} TOTAL VECTORS AUDITED
         </span>
       </div>
 
       {/* Metric 3: AST Footprint */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-white/5 flex flex-col justify-between shadow-sm">
+      <div className="p-3.5 rounded-xl bg-[#101114] border border-[#292A31] flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">AST SCOPE</span>
-          <Layers className="w-3.5 h-3.5 text-primary-container" />
+          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">SOURCE FOOTPRINT</span>
+          <Layers className="w-4 h-4 text-[#A3A4AD]" />
         </div>
-        <div className="mt-2">
-          <span className="font-mono text-2xl font-bold text-slate-100">
+        <div className="mt-2.5">
+          <span className="font-mono text-2xl font-bold text-[#F5F5F6]">
             {audit.repoSummary.filesIngested} FILES
           </span>
         </div>
-        <span className="font-mono text-[10px] text-slate-400 truncate mt-1">
+        <span className="font-mono text-[10px] text-[#747680] truncate mt-1.5">
           Branch: {audit.repoSummary.defaultBranch}
         </span>
       </div>
 
       {/* Metric 4: Benchmark Target */}
-      <div className="p-3 rounded-xl bg-surface-container-low border border-white/5 flex flex-col justify-between shadow-sm">
+      <div className="p-3.5 rounded-xl bg-[#101114] border border-[#292A31] flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">SPEC RUBRIC</span>
-          <Server className="w-3.5 h-3.5 text-tertiary-container" />
+          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">DOMAIN SPEC</span>
+          <Server className="w-4 h-4 text-[#FF666B]" />
         </div>
-        <div className="mt-2">
-          <span className="font-mono text-base font-bold text-primary-container truncate block">
+        <div className="mt-2.5">
+          <span className="font-mono text-xl font-bold text-[#FF666B] truncate block">
             {audit.companyProfile.name}
           </span>
-          {audit.targetRole && (
-            <span className="font-mono text-[10px] text-secondary-container truncate block mt-0.5">
-              {audit.targetRole.title}
-            </span>
-          )}
         </div>
-        <span className="font-mono text-[10px] text-slate-400 truncate mt-1">
+        <span className="font-mono text-[10px] text-[#747680] truncate mt-1.5">
           {audit.companyProfile.domain}
         </span>
       </div>

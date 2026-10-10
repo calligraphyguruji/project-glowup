@@ -5,32 +5,42 @@
 @tailwind utilities;
 
 :root {
-  --background: #090D16;
-  --foreground: #F8FAFC;
+  --background: #08090B;
+  --foreground: #F5F5F6;
+  --surface-primary: #101114;
+  --surface-secondary: #17181D;
+  --surface-elevated: #202127;
+  --border-subtle: #292A31;
+  --coral-accent: #FF666B;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), "Geist", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
+  background-color: #08090B;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
 
 /* Custom scrollbars for high-density code and audit views */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0F172A;
+  background: #101114;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E293B;
-  border-radius: 3px;
+  background: #292A31;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #747680;
 }

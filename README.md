@@ -40,6 +40,7 @@
 - [x] 1-click live demo presets across all 4 target companies (`components/AuditForm.tsx`).
 - [x] In-memory sliding-window IP rate limiter (`lib/rateLimiter.ts`).
 - [x] SSRF, URL validation, and untrusted code delimiter boundaries.
+- [x] Full Redmonk PaaS dark developer platform UI/UX redesign with persistent sidebar navigation (`components/AppSidebar.tsx`), editorial two-column landing hero (`components/LandingHero.tsx`), coral `#FF666B` / emerald `#45D6A0` accents, live search & category filters, and high-density telemetry.
 - [x] End-to-end automated unit test suite passing 32/32 tests (`scripts/run-tests.ts`).
 
 ### Ready for Demo & Deployment

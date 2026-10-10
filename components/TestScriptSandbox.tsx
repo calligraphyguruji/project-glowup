@@ -34,58 +34,58 @@ export function TestScriptSandbox({ script }: TestScriptSandboxProps) {
   };
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Terminal className="w-4 h-4 text-secondary" />
-          <h3 className="font-mono text-sm font-semibold text-slate-100 uppercase tracking-wider">
+          <Terminal className="w-4 h-4 text-[#FF666B]" />
+          <h3 className="font-sans text-sm font-bold text-[#F5F5F6] tracking-tight">
             Concurrency Test Harness
           </h3>
         </div>
-        <span className="font-mono text-[10px] text-secondary uppercase font-semibold">
+        <span className="font-mono text-[10px] text-[#A3A4AD] uppercase font-semibold">
           RACE_CONDITION.JS
         </span>
       </div>
 
-      <div className="p-1.5 rounded-xl bg-surface-container-low border border-white/5 shadow-sm">
-        <div className="p-3 rounded-lg bg-surface-container-lowest flex flex-col gap-2.5">
+      <div className="rounded-xl bg-[#101114] border border-[#292A31] shadow-sm overflow-hidden">
+        <div className="p-3.5 flex flex-col gap-3">
           {/* Action Row */}
-          <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-white/5">
-            <div className="flex items-center gap-1.5 font-mono text-xs text-secondary truncate">
-              <Play className="w-3.5 h-3.5 text-primary-container" />
-              <span>{script.runInstructions}</span>
+          <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b border-[#1F2026]">
+            <div className="flex items-center gap-2 font-mono text-xs text-[#A3A4AD] truncate">
+              <Play className="w-3.5 h-3.5 text-[#FF666B]" />
+              <span className="text-[#F5F5F6] font-semibold">{script.runInstructions}</span>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="px-2.5 py-1 rounded bg-surface-container-high text-slate-200 font-mono text-xs flex items-center gap-1.5 active:scale-95 transition-all border border-white/5"
+                className="px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] border border-[#292A31] text-xs font-mono text-[#F5F5F6] flex items-center gap-1.5 transition-colors"
               >
                 {copied ? (
                   <>
-                    <Check className="w-3 h-3 text-tertiary-container" />
+                    <Check className="w-3.5 h-3.5 text-[#45D6A0]" />
                     <span>Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy className="w-3 h-3 text-slate-400" />
+                    <Copy className="w-3.5 h-3.5 text-[#A3A4AD]" />
                     <span>Copy</span>
                   </>
                 )}
               </button>
               <button
                 onClick={handleDownload}
-                className="px-2.5 py-1 rounded bg-surface-container-high text-slate-200 font-mono text-xs flex items-center gap-1.5 active:scale-95 transition-all border border-white/5"
+                className="px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] border border-[#292A31] text-xs font-mono text-[#F5F5F6] flex items-center gap-1.5 transition-colors"
               >
-                <Download className="w-3 h-3 text-slate-400" />
+                <Download className="w-3.5 h-3.5 text-[#A3A4AD]" />
                 <span>.js</span>
               </button>
             </div>
           </div>
 
-          <p className="font-sans text-xs text-slate-400">{script.targetScenario}</p>
+          <p className="font-sans text-xs text-[#A3A4AD]">{script.targetScenario}</p>
 
-          <pre className="p-3 rounded bg-surface-container-high/90 text-slate-300 font-mono text-xs overflow-x-auto leading-relaxed max-h-[340px]">
+          <pre className="p-3 rounded-lg bg-[#0C0D10] border border-[#1F2026] text-[#F5F5F6] font-mono text-xs overflow-x-auto leading-relaxed max-h-[340px]">
             <code>{script.code}</code>
           </pre>
         </div>

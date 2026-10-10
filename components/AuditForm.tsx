@@ -266,15 +266,15 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* 1. Double-Bezel Physical Ingest Chassis */}
-      <div className="p-1.5 rounded-xl bg-surface-variant/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] ring-1 ring-white/5">
-        <form onSubmit={handleSubmit} className="rounded-lg bg-surface-container-lowest p-3 sm:p-4 flex flex-col gap-3 shadow-inner">
+      {/* 1. Ingest Chassis */}
+      <div className="rounded-xl bg-[#101114] border border-[#292A31] shadow-sm overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
           <div className="flex items-center justify-between text-xs font-mono">
             <div className="flex items-center gap-2">
-              <span className="text-secondary-container font-bold">STACKFIT&gt;</span>
-              <span className="text-slate-400 uppercase tracking-wider text-[11px]">TARGET REPOSITORY URI</span>
+              <span className="text-[#FF666B] font-bold">PG-AUDIT&gt;</span>
+              <span className="text-[#A3A4AD] uppercase tracking-wider text-[11px]">TARGET REPOSITORY URI</span>
             </div>
-            <span className="text-[11px] text-slate-400 bg-surface-container-high px-2 py-0.5 rounded border border-white/5 font-mono">
+            <span className="text-[11px] text-[#A3A4AD] bg-[#17181D] px-2 py-0.5 rounded border border-[#292A31] font-mono">
               ⌘K / ENTER
             </span>
           </div>
@@ -288,21 +288,21 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                 if (urlError) setUrlError(null);
               }}
               placeholder="https://github.com/username/service-repository"
-              className="flex-1 bg-surface-container-low px-3 py-2.5 rounded text-sm text-primary placeholder-slate-500 font-mono focus:outline-none focus:ring-1 focus:ring-primary-container border border-white/5 transition-all"
+              className="flex-1 bg-[#17181D] px-3.5 py-2.5 rounded-lg text-sm text-[#F5F5F6] placeholder-[#747680] font-mono focus:outline-none focus:border-[#FF666B] border border-[#292A31] transition-all"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-primary-container hover:bg-[#3bf5ff] text-slate-950 font-sans font-semibold text-xs shadow-md active:scale-[0.98] disabled:bg-surface-container-high disabled:text-slate-500 transition-all uppercase tracking-wider"
+              className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#FF666B] hover:bg-[#FF8588] text-[#08090B] font-sans font-bold text-xs shadow-[0_0_15px_rgba(255,102,107,0.3)] active:scale-95 disabled:bg-[#202127] disabled:text-[#747680] transition-all uppercase tracking-wider"
             >
               <Cpu className="w-4 h-4" />
-              <span>{isLoading ? "Ingesting..." : "Ingest AST →"}</span>
+              <span>{isLoading ? "Ingesting..." : "Analyze Repository →"}</span>
             </button>
           </div>
 
           {urlError && (
-            <p className="text-xs text-error flex items-center gap-1.5 font-mono">
+            <p className="text-xs text-[#FF666B] flex items-center gap-1.5 font-mono">
               <AlertCircle className="w-3.5 h-3.5" />
               {urlError}
             </p>
@@ -310,61 +310,61 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
           {/* Quick Presets Strip */}
           <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5 text-xs font-mono">
-            <span className="text-slate-500 text-[11px] shrink-0 uppercase tracking-wider">Presets:</span>
+            <span className="text-[#747680] text-[11px] shrink-0 uppercase tracking-wider font-semibold">Presets:</span>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/expressjs/express", "razorpay")}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] text-[11px] border border-[#292A31] transition-colors"
             >
-              <span className="text-tertiary-container">⚡</span> Express.js → Razorpay (Ledger)
+              <span className="text-[#FF666B]">⚡</span> Express.js → Razorpay (Ledger)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/fastify/fastify", "swiggy")}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] text-[11px] border border-[#292A31] transition-colors"
             >
-              <span className="text-secondary">⚡</span> Fastify → Swiggy (Spatial)
+              <span className="text-[#F5BD50]">⚡</span> Fastify → Swiggy (Spatial)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/tiangolo/fastapi", "zerodha")}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] text-[11px] border border-[#292A31] transition-colors"
             >
-              <span className="text-primary-container">⚡</span> FastAPI → Zerodha (Locks)
+              <span className="text-[#38BDF8]">⚡</span> FastAPI → Zerodha (Locks)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/facebook/react", "amazon")}
-              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] text-[11px] border border-[#292A31] transition-colors"
             >
-              <span className="text-tertiary">⚡</span> React → AWS (Partitioning)
+              <span className="text-[#45D6A0]">⚡</span> React → AWS (Partitioning)
             </button>
           </div>
         </form>
       </div>
 
       {/* 2. Unified Target Profile Calibration Deck */}
-      <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-white/5 shadow-sm space-y-4">
+      <div className="p-4 rounded-xl bg-[#101114] border border-[#292A31] shadow-sm space-y-4">
         {/* Profile Header & Summary */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F2026] pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary-container" />
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+              <Sparkles className="w-4 h-4 text-[#FF666B]" />
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F5F5F6]">
                 AUDIT PROFILE &amp; EVALUATION CRITERIA
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-[#A3A4AD] mt-0.5">
               Calibrate findings, concurrency testing, and technical interview questions to company &amp; role.
             </p>
           </div>
 
           {/* Active Profile Telemetry Badge */}
-          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-surface-container-low border border-white/10 font-mono text-[11px]">
-            <span className="text-primary-container font-semibold">{activeCompany.name}</span>
-            <span className="text-slate-600">/</span>
-            <span className="text-secondary-container">{activeRole.title}</span>
-            <span className="text-slate-500 text-[10px] uppercase">({activeRole.experienceLevel})</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#17181D] border border-[#292A31] font-mono text-[11px]">
+            <span className="text-[#FF666B] font-semibold">{activeCompany.name}</span>
+            <span className="text-[#747680]">/</span>
+            <span className="text-[#F5BD50]">{activeRole.title}</span>
+            <span className="text-[#747680] text-[10px] uppercase">({activeRole.experienceLevel})</span>
           </div>
         </div>
 
@@ -373,8 +373,8 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
           {/* Column A: Role & Level Selection */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Briefcase className="w-3.5 h-3.5 text-secondary-container" />
+              <label className="text-[11px] font-mono text-[#A3A4AD] uppercase tracking-wider flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-[#F5BD50]" />
                 Target Role
               </label>
               <button
@@ -383,7 +383,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   resetRoleForm();
                   setShowRoleModal(true);
                 }}
-                className="text-[10px] font-mono text-primary-container hover:underline flex items-center gap-1"
+                className="text-[10px] font-mono text-[#FF666B] hover:text-[#FF8588] flex items-center gap-1 transition-colors"
               >
                 <Plus className="w-3 h-3" /> Custom Role
               </button>
@@ -393,7 +393,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                 value={selectedRoleId}
                 onChange={(e) => setSelectedRoleId(e.target.value)}
                 disabled={isLoading}
-                className="flex-1 bg-surface-container-low px-3 py-2 rounded text-xs font-mono text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                className="flex-1 bg-[#17181D] px-3 py-2 rounded-lg text-xs font-mono text-[#F5F5F6] border border-[#292A31] focus:outline-none focus:border-[#FF666B] transition-colors"
               >
                 <optgroup label="Predefined Roles">
                   {PREDEFINED_ROLES.map((r) => (
@@ -417,13 +417,13 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   type="button"
                   onClick={(e) => handleDeleteRole(activeRole.id, e)}
                   title="Delete Custom Role"
-                  className="p-2 rounded bg-surface-container-low hover:bg-error/20 text-slate-400 hover:text-error border border-white/10"
+                  className="p-2 rounded-lg bg-[#17181D] hover:bg-[#FF666B]/20 text-[#A3A4AD] hover:text-[#FF666B] border border-[#292A31] transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>
-            <p className="text-[10px] font-mono text-slate-500 truncate">
+            <p className="text-[10px] font-mono text-[#747680] truncate">
               Focus: {activeRole.focusAreas.slice(0, 2).join(" · ")}
             </p>
           </div>
@@ -431,8 +431,8 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
           {/* Column B: Company Profile Action & Custom Company Button */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                <Building className="w-3.5 h-3.5 text-tertiary-container" />
+              <label className="text-[11px] font-mono text-[#A3A4AD] uppercase tracking-wider flex items-center gap-1.5">
+                <Building className="w-3.5 h-3.5 text-[#45D6A0]" />
                 Company Invariant Standard
               </label>
               <button
@@ -441,7 +441,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   resetCompanyForm();
                   setShowCompanyModal(true);
                 }}
-                className="text-[10px] font-mono text-primary-container hover:underline flex items-center gap-1"
+                className="text-[10px] font-mono text-[#FF666B] hover:text-[#FF8588] flex items-center gap-1 transition-colors"
               >
                 <Plus className="w-3 h-3" /> Custom Company
               </button>
@@ -451,7 +451,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                 value={selectedCompanyId}
                 onChange={(e) => setSelectedCompanyId(e.target.value)}
                 disabled={isLoading}
-                className="flex-1 bg-surface-container-low px-3 py-2 rounded text-xs font-mono text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-tertiary-container"
+                className="flex-1 bg-[#17181D] px-3 py-2 rounded-lg text-xs font-mono text-[#F5F5F6] border border-[#292A31] focus:outline-none focus:border-[#FF666B] transition-colors"
               >
                 <optgroup label="Production Calibrated">
                   {Object.values(COMPANY_PROFILES).map((c) => (
@@ -476,7 +476,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                     type="button"
                     onClick={(e) => handleEditCompany(activeCompany, e)}
                     title="Edit Custom Company"
-                    className="p-2 rounded bg-surface-container-low hover:bg-surface-container text-slate-400 hover:text-primary-container border border-white/10"
+                    className="p-2 rounded-lg bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#FF666B] border border-[#292A31] transition-colors"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
@@ -484,14 +484,14 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                     type="button"
                     onClick={(e) => handleDeleteCompany(activeCompany.id, e)}
                     title="Delete Custom Company"
-                    className="p-2 rounded bg-surface-container-low hover:bg-error/20 text-slate-400 hover:text-error border border-white/10"
+                    className="p-2 rounded-lg bg-[#17181D] hover:bg-[#FF666B]/20 text-[#A3A4AD] hover:text-[#FF666B] border border-[#292A31] transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               )}
             </div>
-            <p className="text-[10px] font-mono text-slate-500 truncate">
+            <p className="text-[10px] font-mono text-[#747680] truncate">
               Concerns: {activeCompany.keyConcerns.slice(0, 2).join(" · ")}
             </p>
           </div>
@@ -499,7 +499,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
         {/* Quick Company Tiles (Built-in + Custom) */}
         <div>
-          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-2">
+          <span className="text-[10px] font-mono text-[#A3A4AD] uppercase tracking-wider block mb-2 font-semibold">
             SELECT INVARIANT PROFILE:
           </span>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -511,28 +511,25 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   type="button"
                   onClick={() => setSelectedCompanyId(comp.id)}
                   disabled={isLoading}
-                  className={`p-2.5 rounded-lg text-left transition-all relative border ${
+                  className={`p-3 rounded-lg text-left transition-all relative border ${
                     isSelected
-                      ? "bg-primary-container/15 border-primary-container/50 shadow-[0_0_10px_rgba(0,242,254,0.1)]"
-                      : "bg-surface-container-low/60 hover:bg-surface-container-low border-white/5"
+                      ? "bg-[#202127] border-[#FF666B] shadow-[0_0_12px_rgba(255,102,107,0.15)]"
+                      : "bg-[#17181D] hover:bg-[#202127] border-[#292A31]"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? "bg-primary-container shadow-[0_0_4px_rgba(0,242,254,0.8)]" : "bg-slate-600"
-                      }`}
-                    />
-                    {comp.isCustom ? (
-                      <span className="text-[9px] font-mono text-primary-container bg-primary-container/20 px-1 rounded">
-                        CUSTOM
+                    <span className={`font-mono text-xs font-bold ${isSelected ? "text-[#FF666B]" : "text-[#F5F5F6]"}`}>
+                      {comp.name}
+                    </span>
+                    {comp.isCustom && (
+                      <span className="text-[9px] font-mono px-1 rounded bg-[#292A31] text-[#A3A4AD]">
+                        Custom
                       </span>
-                    ) : (
-                      <span className="text-[9px] font-mono text-slate-400 uppercase">CALIBRATED</span>
                     )}
                   </div>
-                  <div className="font-mono text-xs font-bold text-slate-100 truncate">{comp.name}</div>
-                  <div className="text-[10px] text-slate-400 truncate mt-0.5">{comp.domain}</div>
+                  <span className="text-[10px] text-[#A3A4AD] block truncate">
+                    {comp.domain}
+                  </span>
                 </button>
               );
             })}
@@ -542,10 +539,10 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
       {/* Modal: Create/Edit Custom Company */}
       {showCompanyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-surface-container-lowest border border-white/10 rounded-xl p-5 shadow-2xl font-mono text-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="font-bold text-sm text-slate-100 uppercase">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[#101114] border border-[#292A31] rounded-xl p-6 shadow-2xl font-mono text-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[#292A31] pb-3">
+              <span className="font-bold text-sm text-[#F5F5F6] uppercase tracking-wider">
                 {editingCompId ? "Edit Company Profile" : "Create Custom Company Profile"}
               </span>
               <button
@@ -554,49 +551,49 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   setShowCompanyModal(false);
                   resetCompanyForm();
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-[#A3A4AD] hover:text-[#F5F5F6] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveCompany} className="space-y-3">
+            <form onSubmit={handleSaveCompany} className="space-y-3.5">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Company Name *</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Company Name *</label>
                 <input
                   type="text"
                   required
                   value={compName}
                   onChange={(e) => setCompName(e.target.value)}
                   placeholder="e.g. Stripe, OpenAI, MyStartup"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Industry / Domain</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Industry / Domain</label>
                 <input
                   type="text"
                   value={compDomain}
                   onChange={(e) => setCompDomain(e.target.value)}
                   placeholder="e.g. Distributed Payments, Autonomous Robotics"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Tagline / Mission</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Tagline / Mission</label>
                 <input
                   type="text"
                   value={compTagline}
                   onChange={(e) => setCompTagline(e.target.value)}
                   placeholder="e.g. Financial infrastructure for the internet"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">
                   Key Architectural Concerns (comma-separated)
                 </label>
                 <textarea
@@ -604,35 +601,35 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   value={compConcerns}
                   onChange={(e) => setCompConcerns(e.target.value)}
                   placeholder="e.g. Idempotency guards, Zero packet loss, Sub-10ms P99 latency"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Website (optional)</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Website (optional)</label>
                 <input
                   type="text"
                   value={compWebsite}
                   onChange={(e) => setCompWebsite(e.target.value)}
                   placeholder="https://example.com"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#292A31]">
                 <button
                   type="button"
                   onClick={() => {
                     setShowCompanyModal(false);
                     resetCompanyForm();
                   }}
-                  className="px-3 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-slate-300"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] border border-[#292A31] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded bg-primary-container hover:bg-[#3bf5ff] text-slate-950 font-bold"
+                  className="px-4 py-1.5 rounded-lg bg-[#FF666B] hover:bg-[#ff7b80] text-[#08090B] font-bold transition-colors"
                 >
                   Save Profile
                 </button>
@@ -644,10 +641,10 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
       {/* Modal: Create/Edit Custom Target Role */}
       {showRoleModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="w-full max-w-md bg-surface-container-lowest border border-white/10 rounded-xl p-5 shadow-2xl font-mono text-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-2">
-              <span className="font-bold text-sm text-slate-100 uppercase">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="w-full max-w-md bg-[#101114] border border-[#292A31] rounded-xl p-6 shadow-2xl font-mono text-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-[#292A31] pb-3">
+              <span className="font-bold text-sm text-[#F5F5F6] uppercase tracking-wider">
                 {editingRoleId ? "Edit Target Role" : "Create Custom Target Role"}
               </span>
               <button
@@ -656,31 +653,31 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   setShowRoleModal(false);
                   resetRoleForm();
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-[#A3A4AD] hover:text-[#F5F5F6] transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveRole} className="space-y-3">
+            <form onSubmit={handleSaveRole} className="space-y-3.5">
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Role Title *</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Role Title *</label>
                 <input
                   type="text"
                   required
                   value={roleTitle}
                   onChange={(e) => setRoleTitle(e.target.value)}
                   placeholder="e.g. Distributed Systems Engineer, AI App Developer"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#45D6A0]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Seniority / Experience Level</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Seniority / Experience Level</label>
                 <select
                   value={roleLevel}
                   onChange={(e) => setRoleLevel(e.target.value as ExperienceLevel)}
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] border border-[#292A31] focus:outline-none focus:border-[#45D6A0]"
                 >
                   <option value="internship">Internship</option>
                   <option value="entry_level">Entry Level (New Grad)</option>
@@ -692,7 +689,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">
                   Focus Areas &amp; Invariants (comma-separated)
                 </label>
                 <textarea
@@ -700,35 +697,35 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   value={roleFocusAreas}
                   onChange={(e) => setRoleFocusAreas(e.target.value)}
                   placeholder="e.g. Memory profiling, Event-driven streaming, Cache consistency"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#45D6A0]"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-slate-400 mb-1">Description / Notes (optional)</label>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Description / Notes (optional)</label>
                 <textarea
                   rows={2}
                   value={roleDescription}
                   onChange={(e) => setRoleDescription(e.target.value)}
                   placeholder="e.g. Focuses on low-latency microservices and network safety"
-                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#45D6A0]"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#292A31]">
                 <button
                   type="button"
                   onClick={() => {
                     setShowRoleModal(false);
                     resetRoleForm();
                   }}
-                  className="px-3 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-slate-300"
+                  className="px-3.5 py-1.5 rounded-lg bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] border border-[#292A31] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded bg-secondary-container hover:bg-[#ffb076] text-slate-950 font-bold"
+                  className="px-4 py-1.5 rounded-lg bg-[#45D6A0] hover:bg-[#52e8af] text-[#08090B] font-bold transition-colors"
                 >
                   Save Role
                 </button>
