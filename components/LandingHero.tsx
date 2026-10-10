@@ -10,7 +10,7 @@ interface LandingHeroProps {
 
 export function LandingHero({ onAnalyzeClick, onExploreDemo }: LandingHeroProps) {
   return (
-    <section className="relative overflow-hidden pt-4 pb-12 border-b border-[#222730]">
+    <section className="relative overflow-hidden pt-8 pb-12 border-b border-[#222730]">
       <div className="max-w-6xl mx-auto px-4 flex flex-col items-center text-center">
         {/* Top Category Badge Pill */}
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13171D] border border-[#222730] text-xs font-mono text-[#A3A4AD] mb-6">
@@ -19,7 +19,7 @@ export function LandingHero({ onAnalyzeClick, onExploreDemo }: LandingHeroProps)
         </div>
 
         {/* Editorial Scrolltide Headline */}
-        <h1 className="font-sans text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F5F5F6] leading-[1.08] max-w-4xl">
+        <h1 className="font-sans text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#F5F5F6] leading-[1.12] max-w-4xl">
           Smarter <span className="text-[#A3E635]">Systems</span>, <br />
           Backed by <span className="text-[#A3E635]">Real Numbers</span>
         </h1>
@@ -56,13 +56,13 @@ export function LandingHero({ onAnalyzeClick, onExploreDemo }: LandingHeroProps)
           <div className="rounded-3xl bg-gradient-to-b from-[#A3E635] to-[#84CC16] p-6 text-[#07080A] flex flex-col justify-between shadow-[0_10px_35px_rgba(163,230,53,0.2)] min-h-[300px]">
             <div>
               <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#07080A]/70">
-                Key Performance
+                Audit Fidelity
               </span>
               <div className="text-4xl sm:text-5xl font-black tracking-tight mt-2 text-[#07080A]">
-                100%
+                Real Code
               </div>
               <p className="text-xs font-medium text-[#07080A]/80 mt-1 leading-snug">
-                Verified repository AST inspection without mock data or fabricated metrics.
+                Deep AST traversal across real repository source files with zero fabricated findings.
               </p>
             </div>
 
