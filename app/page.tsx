@@ -27,6 +27,7 @@ export default function Home() {
     customCompany?: import("@/types/audit").CompanyProfile;
     roleId?: string;
     customRole?: import("@/types/audit").TargetRole;
+    maxFiles?: number;
   }) => {
     setIsLoading(true);
     setErrorMessage(null);

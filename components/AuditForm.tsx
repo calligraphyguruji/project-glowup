@@ -29,6 +29,7 @@ interface AuditFormProps {
     customCompany?: CompanyProfile;
     roleId?: string;
     customRole?: TargetRole;
+    maxFiles?: number;
   }) => void;
   isLoading: boolean;
 }
@@ -37,6 +38,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
   const [repoUrl, setRepoUrl] = useState("");
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("razorpay");
   const [selectedRoleId, setSelectedRoleId] = useState<string>("sde_intern");
+  const [maxFiles, setMaxFiles] = useState<number>(20);
   const [urlError, setUrlError] = useState<string | null>(null);
 
   // Custom profiles state (stored in localStorage)
@@ -135,6 +137,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
       customCompany: isCustomComp ? activeCompany : undefined,
       roleId: isCustomRol ? undefined : activeRole.id,
       customRole: isCustomRol ? activeRole : undefined,
+      maxFiles,
     });
   };
 
@@ -340,6 +343,27 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
               className="flex-1 bg-[#17181D] px-3.5 py-2.5 rounded-lg text-sm text-[#F5F5F6] placeholder-[#747680] font-mono focus:outline-none focus:border-[#FF666B] border border-[#292A31] transition-all"
               disabled={isLoading}
             />
+
+            {/* AST Scan Scope Depth Selector */}
+            <div className="shrink-0 flex items-center gap-1 bg-[#17181D] border border-[#292A31] rounded-lg p-1 font-mono text-xs">
+              <span className="text-[10px] text-[#747680] uppercase tracking-wider px-1.5 hidden md:inline">Scope:</span>
+              {[10, 20, 30, 40].map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  onClick={() => setMaxFiles(count)}
+                  disabled={isLoading}
+                  className={`px-2 py-1 rounded text-[11px] font-bold transition-all ${
+                    maxFiles === count
+                      ? "bg-[#A3E635] text-[#07080A] shadow-[0_0_8px_rgba(163,230,53,0.3)]"
+                      : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#202127]"
+                  }`}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}

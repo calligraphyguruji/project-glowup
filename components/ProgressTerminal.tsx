@@ -9,10 +9,10 @@ interface ProgressTerminalProps {
 
 const AUDIT_STAGES = [
   { label: "[01/08] SSRF boundary & traversal verification...", tag: "[VALID]", error: false },
-  { label: "[02/08] Tree ingestor scoring schemas & API models...", tag: "[10 FILES]", error: false },
+  { label: "[02/08] Tree ingestor scoring schemas & API models...", tag: "[PARSING TREE]", error: false },
   { label: "[03/08] AST static scan: float currency, locks...", tag: "[DETECTING]", error: false },
   { label: "[04/08] Security & secret exposure analysis...", tag: "[SCANNED]", error: false },
-  { label: "[05/08] Google Gemini Flash synthesizing domain rubric...", tag: "[ONLINE]", error: false },
+  { label: "[05/08] AI intelligence engine synthesizing domain rubric...", tag: "[ONLINE]", error: false },
   { label: "[06/08] Generating Before/After Mermaid.js topology...", tag: "[GRAPH TD]", error: false },
   { label: "[07/08] Assembling runnable concurrency exploit harness...", tag: "[GEN]", error: false },
   { label: "[08/08] Finalizing technical interview defense drill...", tag: "[READY]", error: false },

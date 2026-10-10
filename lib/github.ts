@@ -1,7 +1,7 @@
 import { RepoFile, RepoOverview } from "@/types/audit";
 
 const GITHUB_REPO_REGEX = /^https:\/\/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)\/?$/;
-const MAX_FILES = parseInt(process.env.MAX_FILES_PER_AUDIT || "15", 10);
+const MAX_FILES = parseInt(process.env.MAX_FILES_PER_AUDIT || "20", 10);
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE_BYTES || "51200", 10); // 50 KB
 
 const PROBE_FALLBACK_PATHS = [
@@ -117,7 +117,8 @@ function shouldIgnorePath(path: string): boolean {
  */
 async function fetchViaCdnFallback(
   owner: string,
-  repo: string
+  repo: string,
+  targetMaxFiles: number = MAX_FILES
 ): Promise<{ overview: RepoOverview; files: RepoFile[] }> {
   const branches = ["main", "master"];
   let activeBranch = "main";
@@ -166,7 +167,7 @@ async function fetchViaCdnFallback(
   }
 
   foundFiles.sort((a, b) => b.score - a.score);
-  const prioritized = foundFiles.slice(0, MAX_FILES);
+  const prioritized = foundFiles.slice(0, targetMaxFiles);
 
   const overview: RepoOverview = {
     owner,
@@ -182,8 +183,10 @@ async function fetchViaCdnFallback(
 
 export async function fetchRepositoryFiles(
   owner: string,
-  repo: string
+  repo: string,
+  maxFilesOverride?: number
 ): Promise<{ overview: RepoOverview; files: RepoFile[] }> {
+  const targetMaxFiles = Math.min(Math.max(Number(maxFilesOverride || MAX_FILES || 25), 5), 50);
   const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
     "User-Agent": "ProjectGlowUp-Auditor/1.0",
@@ -241,7 +244,7 @@ export async function fetchRepositoryFiles(
 
   const treeData = await treeRes.json();
   if (!treeData.tree || !Array.isArray(treeData.tree) || treeData.tree.length === 0) {
-    return fetchViaCdnFallback(owner, repo);
+    return fetchViaCdnFallback(owner, repo, targetMaxFiles);
   }
 
   const rawTree: Array<{ path: string; type: string; size?: number }> = treeData.tree;
@@ -256,10 +259,10 @@ export async function fetchRepositoryFiles(
       size: item.size || 0,
     }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, MAX_FILES);
+    .slice(0, targetMaxFiles);
 
   if (candidates.length === 0) {
-    return fetchViaCdnFallback(owner, repo);
+    return fetchViaCdnFallback(owner, repo, targetMaxFiles);
   }
 
   // Step 4: Fetch file contents (concurrent batch)

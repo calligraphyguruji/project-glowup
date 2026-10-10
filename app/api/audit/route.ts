@@ -117,8 +117,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Ingestion Pipeline (with campus network fallback)
-    const { overview, files } = await fetchRepositoryFiles(repoInfo.owner, repoInfo.repo);
+    // 3. Ingestion Pipeline (with campus network fallback & configurable file depth)
+    const requestedMaxFiles = typeof body.maxFiles === "number" ? body.maxFiles : undefined;
+    const { overview, files } = await fetchRepositoryFiles(repoInfo.owner, repoInfo.repo, requestedMaxFiles);
 
     // 4. Deterministic Static Rules Scan
     const staticFindings = runStaticAudit(files, companyId);

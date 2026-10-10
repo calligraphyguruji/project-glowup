@@ -103,6 +103,7 @@ export interface AuditRequest {
   customCompany?: CompanyProfile;
   roleId?: string;
   customRole?: TargetRole;
+  maxFiles?: number;
 }
 
 export interface ScoreBreakdown {
