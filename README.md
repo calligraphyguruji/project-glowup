@@ -1,5 +1,8 @@
 # ProjectGlowUp AI (StackFit AI)
 
+> **Live Demo:** [https://project-glowup-ai.vercel.app/](https://project-glowup-ai.vercel.app/)  
+> **Author Portfolio:** [https://www.calligraphyguruji.dev/](https://www.calligraphyguruji.dev/)  
+> **Author GitHub:** [https://github.com/calligraphyguruji](https://github.com/calligraphyguruji)  
 > **Hackathon Track:** Problem Statement 4 — Open Innovation (Student Pain Points)  
 > **One-Line Problem:** College students build generic tutorial projects that lack target-company engineering patterns, causing instant resume rejections and technical interview failures.
 
@@ -215,3 +218,12 @@ In accordance with Problem Statement 4 guidelines, all claims of student need ar
 ## Proposed License
 
 Proposed under the **MIT License**.
+
+---
+
+## Author & Project Links
+
+- **Live Demo Application:** [https://project-glowup-ai.vercel.app/](https://project-glowup-ai.vercel.app/)
+- **Author Portfolio:** [https://www.calligraphyguruji.dev/](https://www.calligraphyguruji.dev/)
+- **GitHub Profile:** [https://github.com/calligraphyguruji](https://github.com/calligraphyguruji)
+- **Repository:** [https://github.com/calligraphyguruji/project-glowup](https://github.com/calligraphyguruji/project-glowup)
