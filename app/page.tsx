@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Sparkles, AlertCircle } from "lucide-react";
 import { AuditForm } from "@/components/AuditForm";
 import { FindingsView } from "@/components/FindingsView";
+import { MetricsOverview } from "@/components/MetricsOverview";
 import { MermaidViewer } from "@/components/MermaidViewer";
 import { TestScriptSandbox } from "@/components/TestScriptSandbox";
 import { InterviewDefense } from "@/components/InterviewDefense";
@@ -107,6 +108,9 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* High-Density Metrics Overview */}
+          <MetricsOverview audit={auditData} />
 
           {/* Core Findings */}
           <FindingsView findings={auditData.findings} />
