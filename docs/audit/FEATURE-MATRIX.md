@@ -1,0 +1,17 @@
+# Implementation Feature Matrix: ProjectGlowup AI
+
+| Feature | Expected Behavior | Implementation Location | Verification Method | Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **GitHub Repository Ingestion** | Ingest public repo tree and retrieve scored files | [`lib/github.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/github.ts) | Integration test via `test:ingestion` & CDN fallback | **Verified** |
+| **Bounded Ingestion Guards** | Enforce 10 files max, 50 KB per file cap, binary rejection | [`lib/github.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/github.ts) | Static unit test & tree truncation parser | **Verified** |
+| **SSRF & URL Boundary** | Strict regex rejecting loopback, metadata IPs, traversal | [`lib/github.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/github.ts) | Unit test suite (6/6 SSRF cases in `run-tests.ts`) | **Verified** |
+| **Deterministic Static Scanner** | Detect float currency, missing idempotency, unindexed geospatial, leaks | [`lib/staticRules.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/staticRules.ts) | Fixture-based tests in `run-tests.ts` | **Verified** |
+| **Gemini AI Structured Synthesis** | Strict JSON schema generation with markdown fence sanitizer | [`lib/gemini.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/gemini.ts) | Mock schema parsing and fallback unit test | **Verified** |
+| **Mermaid Architecture Diff** | Client-side Before/After diff with Split Diff & dark theme | [`components/MermaidViewer.tsx`](file:///Users/calligraphyguruji/Azisly%20Hackathon/components/MermaidViewer.tsx) | DOM persistent SVG render & Next.js production build | **Verified** |
+| **Concurrency Test Generator** | Generate runnable stress test with download & copy features | [`components/TestScriptSandbox.tsx`](file:///Users/calligraphyguruji/Azisly%20Hackathon/components/TestScriptSandbox.tsx) | Client-side Blob download + clipboard copy validation | **Verified** |
+| **Technical Interview Defense** | Generate interviewer intent and candidate talking points | [`components/InterviewDefense.tsx`](file:///Users/calligraphyguruji/Azisly%20Hackathon/components/InterviewDefense.tsx) | Component render & company profile rubric check | **Verified** |
+| **High-Density Observability Strip** | Real-time score, vulnerability counts, core file stats | [`components/MetricsOverview.tsx`](file:///Users/calligraphyguruji/Azisly%20Hackathon/components/MetricsOverview.tsx) | Dashboard component integration | **Verified** |
+| **1-Click Live Demo Presets** | Instant presets for Razorpay, Swiggy, Zerodha, Amazon | [`components/AuditForm.tsx`](file:///Users/calligraphyguruji/Azisly%20Hackathon/components/AuditForm.tsx) | Form preset state & handler execution | **Verified** |
+| **In-Memory Rate Limiter** | Sliding window token bucket (15 req/min, 5000 IP cap) | [`lib/rateLimiter.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/lib/rateLimiter.ts) | Unit test assertions in `run-tests.ts` | **Verified** |
+| **Evidence Vault** | Authentic student research (5 interviews + quantitative survey) | [`evidence/`](file:///Users/calligraphyguruji/Azisly%20Hackathon/evidence/) | 5 student Markdown records + survey summary | **Verified** |
+| **Vercel Serverless Readiness** | Zero native binary bindings, stateless API, 0B route size | [`app/api/audit/route.ts`](file:///Users/calligraphyguruji/Azisly%20Hackathon/app/api/audit/route.ts) | `next build` static export & serverless route bundle | **Verified** |

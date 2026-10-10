@@ -2,6 +2,7 @@ import { validateGithubUrl } from "../lib/github";
 import { checkRateLimit } from "../lib/rateLimiter";
 import { runStaticAudit } from "../lib/staticRules";
 import { COMPANY_PROFILES } from "../lib/companies";
+import { generateFallbackAudit } from "../lib/gemini";
 import { RepoFile } from "../types/audit";
 
 function runUnitTests() {
@@ -94,7 +95,7 @@ function runUnitTests() {
   assert(secretFindings.some((f) => f.category.includes("Security")), "Detects hardcoded API secrets in source files");
 
   // 4. Company Profiles & Clean Rules Fallback
-  console.log("\n[4/4] Testing Company Profiles & Fallback Safety...");
+  console.log("\n[4/5] Testing Company Profiles & Fallback Safety...");
   assert(Object.keys(COMPANY_PROFILES).length === 4, "Configures 4 domain profiles (Razorpay, Swiggy, Zerodha, Amazon)");
 
   const cleanFiles: RepoFile[] = [
@@ -107,6 +108,25 @@ function runUnitTests() {
   ];
   const cleanFindings = runStaticAudit(cleanFiles, "amazon");
   assert(cleanFindings.length > 0 && cleanFindings[0].severity === "optimization", "Returns optimization note when no violations exist");
+
+  // 5. Gemini Heuristic Fallback & Structured Schema Verification
+  console.log("\n[5/5] Testing AI Synthesis & Structured Fallback Safety...");
+  const mockOverview = {
+    owner: "student",
+    repo: "fintech-app",
+    defaultBranch: "main",
+    totalFilesDiscovered: 12,
+    filesIngested: 2,
+    primaryLanguage: "TypeScript",
+  };
+  const fallbackAudit = generateFallbackAudit(mockOverview, COMPANY_PROFILES.razorpay, razorpayFindings);
+
+  assert(fallbackAudit.overallScore > 0 && fallbackAudit.overallScore <= 100, "Calculates valid bounded overall score");
+  assert(fallbackAudit.findings.length >= 2, "Includes static flags and domain concurrency findings");
+  assert(fallbackAudit.architectureComparison.currentMermaid.includes("graph TD"), "Generates valid Before Mermaid graph");
+  assert(fallbackAudit.architectureComparison.targetMermaid.includes("graph TD"), "Generates valid Target Mermaid graph");
+  assert(fallbackAudit.stressTestScript.code.includes("fetch"), "Provides runnable HTTP concurrency script");
+  assert(fallbackAudit.interviewDefense.length >= 2, "Provides company-tailored interview drill items");
 
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);
