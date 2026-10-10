@@ -32,22 +32,40 @@ export function TestScriptSandbox({ script }: TestScriptSandboxProps) {
           <p className="text-xs text-slate-400 mt-0.5">{script.targetScenario}</p>
         </div>
 
-        <button
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 text-xs font-mono text-slate-200 transition-colors self-start sm:self-auto"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="w-3.5 h-3.5 text-slate-400" />
-              <span>Copy Test Script</span>
-            </>
-          )}
-        </button>
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            onClick={() => {
+              const blob = new Blob([script.code], { type: "text/javascript" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `concurrency-test.${script.language === "python" ? "py" : "js"}`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-800/80 hover:bg-slate-700 text-xs font-mono text-slate-300 transition-colors"
+          >
+            <span>Download .js</span>
+          </button>
+          <button
+            onClick={handleCopy}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-cyan-800/50 bg-cyan-950/40 hover:bg-cyan-900/40 text-xs font-mono text-cyan-300 transition-colors"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Copy Script</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
