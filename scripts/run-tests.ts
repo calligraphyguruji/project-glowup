@@ -293,9 +293,121 @@ function runUnitTests() {
     "Repo B critical finding includes exact line number and evidence excerpt"
   );
 
+  // 8. Multi-Vulnerability Full Spectrum Security Audit Test
+  console.log("\n[8/8] Testing Comprehensive Multi-Vulnerability Audit (>10 distinct issues)...");
+  const vulnerableRepoFiles: RepoFile[] = [
+    {
+      path: "src/api/auth.js",
+      content: `
+        const crypto = require('crypto');
+        const jwtSecret = 'super_secret_jwt_key_123456789';
+        function hashPassword(password) {
+          return crypto.createHash('md5').update(password).digest('hex');
+        }
+        function setCookie(res, token) {
+          res.cookie('token', token, { httpOnly: false });
+        }
+      `,
+      size: 300,
+      score: 95,
+    },
+    {
+      path: "src/api/admin.js",
+      content: `
+        const { exec } = require('child_process');
+        const fs = require('fs');
+        app.post('/api/admin/run', (req, res) => {
+          exec('systemctl restart ' + req.body.service);
+        });
+        app.get('/api/admin/download', (req, res) => {
+          fs.readFile(req.query.file, (err, data) => res.send(data));
+        });
+      `,
+      size: 320,
+      score: 95,
+    },
+    {
+      path: "src/api/users.js",
+      content: `
+        const axios = require('axios');
+        app.post('/api/users/avatar', async (req, res) => {
+          const resp = await axios.get(req.query.avatarUrl);
+          res.send(resp.data);
+        });
+        app.get('/api/users/search', async (req, res) => {
+          const results = await db.query('SELECT * FROM users WHERE name = ' + req.query.name);
+          res.json(results);
+        });
+      `,
+      size: 350,
+      score: 90,
+    },
+    {
+      path: "src/views/profile.jsx",
+      content: `
+        export function ProfileCard({ userBio }) {
+          return <div dangerouslySetInnerHTML={{ __html: userBio }} />;
+        }
+      `,
+      size: 200,
+      score: 85,
+    },
+    {
+      path: "src/server.js",
+      content: `
+        const express = require('express');
+        const cors = require('cors');
+        const app = express();
+        app.use(cors({ origin: '*' }));
+        app.post('/api/checkout', (req, res) => {
+          console.log("processing order");
+          console.log("debiting account");
+          console.log("done");
+          res.json({ ok: true });
+        });
+      `,
+      size: 300,
+      score: 90,
+    },
+    {
+      path: "prisma/schema.prisma",
+      content: `
+        model Order {
+          id String @id
+          total Float
+          customerId String
+        }
+      `,
+      size: 150,
+      score: 90,
+    },
+  ];
+
+  const fullAuditFindings = runStaticAudit(vulnerableRepoFiles, "custom_company");
+  const fullAuditReport = generateFallbackAudit(
+    { owner: "vulnerable-corp", repo: "audit-target", defaultBranch: "main", totalFilesDiscovered: 6, filesIngested: 6 },
+    vulnerableRepoFiles,
+    {
+      id: "custom_azisly",
+      name: "Azisly",
+      domain: "Scale Infrastructure",
+      tagline: "High-scale engineering",
+      keyConcerns: ["System integrity", "Boundary security"],
+      sampleAntiPatterns: [],
+    },
+    fullAuditFindings
+  );
+
+  assert(fullAuditReport.findings.length >= 10, `Discovers >= 10 distinct vulnerabilities (Discovered: ${fullAuditReport.findings.length})`);
+  assert(!fullAuditReport.findings.every(f => f.category === fullAuditReport.findings[0].category), "Findings span multiple distinct vulnerability categories");
+  
+  const distinctCategories = new Set(fullAuditReport.findings.map(f => f.category));
+  assert(distinctCategories.size >= 5, `Covers at least 5 distinct vulnerability categories (Found: ${distinctCategories.size})`);
+
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);
   process.exit(0);
 }
 
 runUnitTests();
+

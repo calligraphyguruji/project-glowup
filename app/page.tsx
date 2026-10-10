@@ -168,7 +168,7 @@ export default function Home() {
             />
 
             {/* Vulnerability Dossier */}
-            <FindingsView findings={auditData.findings} />
+            <FindingsView key={auditData.generatedAt} findings={auditData.findings} />
 
             {/* Concurrency Test Harness */}
             <TestScriptSandbox script={auditData.stressTestScript} />

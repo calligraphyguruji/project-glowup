@@ -23,13 +23,15 @@
 - [x] 5 authentic student interviews (`evidence/interviews/student-01.md` - `05.md`) & quantitative survey (`evidence/survey/responses.md`).
 - [x] Next.js 14+ (App Router), TypeScript, Tailwind CSS, Lucide React, and Mermaid.js setup.
 - [x] GitHub REST API tree fetcher with 50 KB file boundaries & campus CDN probe fallback (`lib/github.ts`).
-- [x] Static rule engine detecting float currency, missing idempotency, unindexed coordinates, missing FK indexes, and secrets (`lib/staticRules.ts`).
+- [x] Comprehensive static security & anti-pattern scanner covering 17+ vulnerability categories (Command Injection, SQLi, SSRF, Path Traversal, DOM XSS, Weak Crypto, Wildcard CORS, Disabled TLS, Insecure Deserialization, Insecure Cookies, Float currency, Missing Idempotency, Unindexed Geospatial, Missing FK Indexing, Unstructured Logs, Uncaught Exceptions, Hardcoded Secrets) across multiple languages (`lib/staticRules.ts`).
+- [x] Multi-category fallback intelligence synthesizer auditing bundle hygiene, database locking, distributed correlation IDs, ingress rate limiting, and schema validation (`lib/gemini.ts`).
 - [x] Structured JSON audit synthesis with Google Gemini Flash API (`lib/gemini.ts`).
 - [x] Client-side Before/After Mermaid.js system diff visualizer (`components/MermaidViewer.tsx`).
 - [x] Custom company profile creation, editing, deletion, and local storage persistence (`components/AuditForm.tsx`).
 - [x] Target role selection (SDE Intern, Backend, Frontend, Full-Stack, DevOps, QA Automation) and custom role creation (`lib/roles.ts`).
 - [x] Transparent explainable scoring engine with severity deductions and coverage factor (`lib/scorer.ts`).
 - [x] Exact file citation line numbers, source excerpts, and architectural reasoning in findings (`lib/staticRules.ts`).
+- [x] Search filter and category selector in Vulnerability Dossier (`components/FindingsView.tsx`).
 - [x] Dynamic, repository-grounded concurrency stress test harnesses targeting discovered routes (`lib/gemini.ts`).
 - [x] Cross-audit state isolation preventing stale findings leakage between consecutive audits (`app/page.tsx`).
 - [x] Runnable concurrency test harness sandbox with 1-click clipboard copy (`components/TestScriptSandbox.tsx`).
@@ -38,7 +40,7 @@
 - [x] 1-click live demo presets across all 4 target companies (`components/AuditForm.tsx`).
 - [x] In-memory sliding-window IP rate limiter (`lib/rateLimiter.ts`).
 - [x] SSRF, URL validation, and untrusted code delimiter boundaries.
-- [x] End-to-end automated unit test suite passing 29/29 tests (`scripts/run-tests.ts`).
+- [x] End-to-end automated unit test suite passing 32/32 tests (`scripts/run-tests.ts`).
 
 ### Ready for Demo & Deployment
 - [x] Verified zero TypeScript compilation errors (`npm run type-check`).

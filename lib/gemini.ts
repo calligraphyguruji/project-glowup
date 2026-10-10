@@ -108,7 +108,11 @@ INSPECTED REPOSITORY CODE:
 ${fileSummaries}
 
 TASK:
-1. Audit the code objectively based strictly on observable evidence in this repository.
+1. Conduct a rigorous, comprehensive repository-wide code intelligence and security audit:
+   - Identify ALL genuine defects across multiple categories: Injection (SQL/Command), Auth & Secrets, Concurrency & Race Conditions, Path Traversal, SSRF, XSS, Deserialization, Memory/Resource Leaks, Missing Boundaries, Unindexed DB Queries, and Architecture Anti-Patterns.
+   - Deliver multiple distinct, evidence-backed findings (aim for 5-12 findings when detectable issues genuinely exist across the codebase) with exact file citations and line-accurate remediation.
+   - Do NOT collapse results into a single generic finding. Report distinct items for each architectural and security flaw.
+   - Ground every finding in observable code: cite actual files present in the inspected list above.
    - If this is a Frontend-only React app, DO NOT invent backend database or Redis flaws unless justified by explicit dependencies or endpoints.
    - If this repository does not have a checkout endpoint, DO NOT invent checkout-specific flaws.
    - Calibrate defect severity to both company standards and the target role scope.
@@ -260,9 +264,10 @@ export function generateFallbackAudit(
   const hasEndpoints = detectedStack.discoveredEndpoints.length > 0;
   const primaryEndpoint = detectedStack.discoveredEndpoints[0] || null;
 
-  // Build repository-grounded findings
+  // Build repository-grounded findings starting with all discovered static security findings
   const dynamicFindings: AuditFinding[] = [...staticFindings.filter((f) => f.severity !== "optimization")];
 
+  // 1. Frontend Performance & Bundle Hygiene
   if (isFrontendOnly) {
     const citedFile = files.find((f) => f.path.includes("package.json") || f.path.includes("App"))?.path || files[0]?.path || "package.json";
     dynamicFindings.push({
@@ -286,7 +291,10 @@ export function generateFallbackAudit(
       remediation: `Implement React.lazy with Suspense boundaries for non-critical route components.`,
       codeSnippet: `const HeavyComponent = React.lazy(() => import('./HeavyComponent'));`,
     });
-  } else if (detectedStack.hasDatabase) {
+  }
+
+  // 2. Database Concurrency & Isolation
+  if (detectedStack.hasDatabase) {
     const citedFile = files.find((f) => f.path.includes("schema") || f.path.includes("model") || f.path.includes("server") || f.path.includes("db"))?.path || files[0]?.path || "package.json";
     dynamicFindings.push({
       id: "evidence-finding-db-concurrency",
@@ -309,28 +317,93 @@ export function generateFallbackAudit(
       remediation: `Enforce atomic database updates (UPDATE ... WHERE balance >= amount) or Redis distributed mutex locks.`,
       codeSnippet: `// Atomic SQL:\nUPDATE accounts SET balance = balance - 100 WHERE id = 1 AND balance >= 100;`,
     });
-  } else if (files.length > 0) {
-    const entryFile = files.find((f) => f.path.includes("index") || f.path.includes("main") || f.path.includes("server"))?.path || files[0].path;
-    dynamicFindings.push({
-      id: "evidence-finding-service-resilience",
-      severity: "warning",
-      category: "Service Architecture & Resilience",
-      title: `Missing centralized error boundary & structured telemetry`,
-      fileCitation: entryFile,
-      startLine: 1,
-      endLine: 1,
-      evidence: [
-        {
-          path: entryFile,
-          startLine: 1,
-          endLine: 1,
-          excerpt: `Service entry point missing correlation ID middleware`,
-        },
-      ],
-      reasoning: "Without structured correlation IDs, cascading failures across service boundaries cannot be traced.",
-      explanation: `${company.name} standards require structured correlation IDs (x-request-id) and circuit breakers to isolate failure domains.`,
-      remediation: `Add request-tracing middleware and export structured logs for centralized aggregation.`,
-    });
+  }
+
+  // 3. Service Telemetry & Distributed Tracing (Backend Services)
+  if (!isFrontendOnly && files.length > 0) {
+    const entryFile = files.find((f) => f.path.includes("index") || f.path.includes("main") || f.path.includes("server") || f.path.includes("app"))?.path || files[0]?.path || "server.js";
+    const hasTracing = files.some((f) => /x-request-id|correlation-id|opentelemetry|traceId|traceparent/i.test(f.content));
+    if (!hasTracing) {
+      dynamicFindings.push({
+        id: "evidence-finding-service-resilience",
+        severity: "warning",
+        category: "Observability & Distributed Tracing",
+        title: `Service boundary lacks distributed correlation IDs (x-request-id)`,
+        fileCitation: entryFile,
+        startLine: 1,
+        endLine: 1,
+        evidence: [
+          {
+            path: entryFile,
+            startLine: 1,
+            endLine: 1,
+            excerpt: `Service entry point missing correlation ID propagation middleware`,
+          },
+        ],
+        reasoning: "Without structured correlation IDs, cascading failures across upstream and downstream service boundaries cannot be traced.",
+        explanation: `${company.name} production architecture mandates structured correlation IDs (x-request-id) and distributed tracing to debug microservice latencies and isolate cascading outages.`,
+        remediation: `Add request-tracing middleware (e.g. cls-hooked, OpenTelemetry, or custom header propagation) to stamp every inbound request with a UUID.`,
+        codeSnippet: `app.use((req, res, next) => {\n  req.id = req.headers['x-request-id'] || crypto.randomUUID();\n  res.setHeader('x-request-id', req.id);\n  next();\n});`,
+      });
+    }
+  }
+
+  // 4. API Ingress Rate Limiting & DoS Protection
+  if (!isFrontendOnly && hasEndpoints) {
+    const hasRateLimiter = files.some((f) => /rate-limit|ratelimit|express-rate-limit|slowdown|throttle|bucket/i.test(f.content));
+    if (!hasRateLimiter) {
+      const routeFile = detectedStack.discoveredEndpoints[0]?.file || files[0]?.path || "routes.js";
+      dynamicFindings.push({
+        id: "evidence-finding-rate-limiting",
+        severity: "warning",
+        category: "API Gateway & Traffic Shaping",
+        title: `Public HTTP endpoints lack rate limiting or token-bucket throttling`,
+        fileCitation: routeFile,
+        startLine: 1,
+        endLine: 1,
+        evidence: [
+          {
+            path: routeFile,
+            startLine: 1,
+            endLine: 1,
+            excerpt: `Discovered endpoint ${detectedStack.discoveredEndpoints[0]?.method || "GET"} ${detectedStack.discoveredEndpoints[0]?.path || "/api"} without rate limit middleware`,
+          },
+        ],
+        reasoning: "Unbounded HTTP ingress permits brute-force credential stuffing, API scraping, and application-layer denial of service (DoS).",
+        explanation: `${company.name} ingress tiers enforce sliding-window rate limiting per IP / API token to protect downstream compute and databases from traffic surges.`,
+        remediation: `Attach Redis-backed token bucket or express-rate-limit middleware to all public HTTP routes.`,
+        codeSnippet: `const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });\napp.use('/api/', limiter);`,
+      });
+    }
+  }
+
+  // 5. Ingress Schema Validation
+  if (!isFrontendOnly && hasEndpoints) {
+    const hasSchemaValidator = files.some((f) => /zod|joi|yup|class-validator|pydantic|ajv/i.test(f.content));
+    if (!hasSchemaValidator) {
+      const routeFile = detectedStack.discoveredEndpoints[0]?.file || files[0]?.path || "routes.js";
+      dynamicFindings.push({
+        id: "evidence-finding-schema-validation",
+        severity: "warning",
+        category: "Input Validation & Data Sanitization",
+        title: `Endpoint payload handlers lack strict schema validation (Zod, Joi, Pydantic)`,
+        fileCitation: routeFile,
+        startLine: 1,
+        endLine: 1,
+        evidence: [
+          {
+            path: routeFile,
+            startLine: 1,
+            endLine: 1,
+            excerpt: `Route handler consumes req.body without schema parser validation`,
+          },
+        ],
+        reasoning: "Processing unvalidated JSON payloads leads to type confusion, unhandled null-reference exceptions, and mass-assignment flaws.",
+        explanation: `Top tech engineering standards reject ad-hoc req.body access. Strong runtime schema validation protects against injection and malformed state mutations.`,
+        remediation: `Implement runtime schema parsing (e.g. Zod or Pydantic) on all mutation request bodies.`,
+        codeSnippet: `const body = PayloadSchema.parse(req.body);`,
+      });
+    }
   }
 
   // Build repository-grounded stress test script
