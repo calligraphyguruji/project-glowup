@@ -123,6 +123,13 @@ function classifyGeminiError(err: unknown): {
     };
   }
 
+  if (lower.includes("404") || lower.includes("not found")) {
+    return {
+      status: "key_invalid",
+      details: "Gemini API returned 404 Not Found: Generative Language API is not enabled in your Google Cloud / AI Studio project, or the API key lacks model permissions.",
+    };
+  }
+
   return {
     status: "error",
     details: `Gemini execution error: ${message.slice(0, 150)}`,
