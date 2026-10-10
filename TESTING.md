@@ -2,7 +2,7 @@
 
 ## 1. Testing Philosophy & Test Pyramid
 
-RepoDoctor AI prioritizes reliability and correctness under hostile or unexpected inputs. Because the application interacts with external third-party services (GitHub REST API and Google Gemini API) and accepts arbitrary repository links from users, rigorous boundary validation is mandatory.
+ProjectGlowUp AI prioritizes reliability and correctness under hostile or unexpected inputs. Because the application interacts with external third-party services (GitHub REST API and Google Gemini API) and accepts arbitrary repository links from users, rigorous boundary validation is mandatory.
 
 ```
        /\

@@ -1,8 +1,8 @@
-# RepoDoctor AI (StackFit AI) - System Architecture
+# ProjectGlowUp AI (StackFit AI) - System Architecture
 
 ## 1. Executive Summary & Engineering Objectives
 
-**RepoDoctor AI** is a lightweight, zero-cost engineering intelligence platform designed for college students preparing for campus placements and technical interviews. It bridges the critical divide between "tutorial-clone code" and production-grade engineering standards demanded by target tech companies (such as Razorpay, Swiggy, Zerodha, and Amazon).
+**ProjectGlowUp AI** is a lightweight, zero-cost engineering intelligence platform designed for college students preparing for campus placements and technical interviews. It bridges the critical divide between "tutorial-clone code" and production-grade engineering standards demanded by target tech companies (such as Razorpay, Swiggy, Zerodha, and Amazon).
 
 ### Core Objectives
 1. **Evidence-Grounded Auditing:** Parse observable repository source code via the GitHub REST API rather than guessing from conversational prompts.
@@ -226,7 +226,7 @@ graph TD
 
 ## 9. Test-Script Generation & Validation
 
-To help students prove their engineering depth during technical interviews, RepoDoctor generates a runnable test script:
+To help students prove their engineering depth during technical interviews, ProjectGlowUp AI generates a runnable test script:
 - **Format:** Standalone Node.js script using native `fetch` or a lightweight `k6` benchmark script.
 - **Purpose:** Demonstrates failure in unhardened code and resilience in hardened code (e.g., firing 20 concurrent requests with the identical idempotency key or balance deduction request).
 - **Execution Safety:** The server **never** executes this script. The client provides it as an inspection artifact with copyable instructions for the student to run in their own local development environment.

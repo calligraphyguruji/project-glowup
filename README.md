@@ -1,4 +1,4 @@
-# RepoDoctor AI (StackFit AI)
+# ProjectGlowUp AI (StackFit AI)
 
 > **Hackathon Track:** Problem Statement 4 — Open Innovation (Student Pain Points)  
 > **One-Line Problem:** College students build generic tutorial projects that lack target-company engineering patterns, causing instant resume rejections and technical interview failures.
@@ -7,7 +7,7 @@
 
 ## What It Does (Problem Statement 4)
 
-**RepoDoctor AI** is an engineering intelligence web application that audits a student’s actual public GitHub repository against the production-grade engineering standards of their target company (such as Razorpay, Swiggy, Zerodha, or Amazon). Instead of scanning resume keywords like an ATS or generating generic advice like a standard chatbot, it inspects real repository code, detects architectural anti-patterns, generates interactive Before/After system design diagrams in Mermaid.js, and provides runnable concurrency/load-test scripts to help students defend their code in technical interviews.
+**ProjectGlowUp AI** is an engineering intelligence web application that audits a student’s actual public GitHub repository against the production-grade engineering standards of their target company (such as Razorpay, Swiggy, Zerodha, or Amazon). Instead of scanning resume keywords like an ATS or generating generic advice like a standard chatbot, it inspects real repository code, detects architectural anti-patterns, generates interactive Before/After system design diagrams in Mermaid.js, and provides runnable concurrency/load-test scripts to help students defend their code in technical interviews.
 
 ---
 
@@ -126,8 +126,8 @@ flowchart LR
 ### Installation
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-username/repo-doctor-ai.git
-cd repo-doctor-ai
+git clone https://github.com/your-username/project-glowup-ai.git
+cd project-glowup-ai
 
 # 2. Copy environment template
 cp .env.example .env.local

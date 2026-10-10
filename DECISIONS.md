@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADR) Log
 
-This document records the architectural and technology decisions for **RepoDoctor AI (StackFit AI)**.
+This document records the architectural and technology decisions for **ProjectGlowUp AI (StackFit AI)**.
 
 ---
 

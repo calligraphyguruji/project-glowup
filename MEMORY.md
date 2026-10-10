@@ -1,4 +1,4 @@
-# Project Memory: RepoDoctor AI (StackFit AI)
+# Project Memory: ProjectGlowUp AI (StackFit AI)
 
 **Last Updated:** 2026-10-10  
 **Phase:** Pre-Implementation / Engineering Foundation Established
@@ -7,7 +7,7 @@
 
 ## 1. Project Purpose & Scope
 
-RepoDoctor AI is an engineering audit platform for engineering students preparing for technical interviews and campus placements. It inspects public GitHub repositories using the GitHub REST API and evaluates codebases against target-company engineering paradigms (e.g., Razorpay, Swiggy, Zerodha, Amazon). It surfaces evidence-grounded anti-patterns, Before/After Mermaid.js architecture diagrams, and runnable edge-case test scripts.
+ProjectGlowUp AI is an engineering audit platform for engineering students preparing for technical interviews and campus placements. It inspects public GitHub repositories using the GitHub REST API and evaluates codebases against target-company engineering paradigms (e.g., Razorpay, Swiggy, Zerodha, Amazon). It surfaces evidence-grounded anti-patterns, Before/After Mermaid.js architecture diagrams, and runnable edge-case test scripts.
 
 ---
 

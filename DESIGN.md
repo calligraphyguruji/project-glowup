@@ -2,7 +2,7 @@
 
 ## 1. Product Vision & Design Philosophy
 
-**RepoDoctor AI (StackFit AI)** is an engineering intelligence and codebase audit dashboard. It is designed to look and feel like a modern developer observability tool (such as Sentry, Datadog, or GitHub Code Scanning), rather than a generic conversational AI chatbot.
+**ProjectGlowUp AI (StackFit AI)** is an engineering intelligence and codebase audit dashboard. It is designed to look and feel like a modern developer observability tool (such as Sentry, Datadog, or GitHub Code Scanning), rather than a generic conversational AI chatbot.
 
 ### Core Visual Principles
 - **Engineering Rigor Over AI Gimmicks:** Dense, clean, and structured information layouts. No floating chatbot bubbles, conversational fillers, or purple pastel gradients.

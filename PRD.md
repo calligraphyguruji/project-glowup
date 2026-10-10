@@ -1,6 +1,6 @@
 # Product Requirements Document & Engineering Standards (PRD.md)
 
-**Project:** RepoDoctor AI (Alternative Name: StackFit AI)  
+**Project:** ProjectGlowUp AI (StackFit AI)  
 **Hackathon Track:** Problem Statement 4 — Open Innovation (Student Pain Points)  
 **Document Status:** Authoritative Product & Engineering Specification  
 **Version:** 1.0.0 (Foundation Phase)
@@ -18,7 +18,7 @@ Consequently:
 - Existing resume ATS tools only match keywords without inspecting code, and generic AI assistants generate abstract text walls without analyzing actual repositories.
 
 ### 1.2. The Solution
-**RepoDoctor AI** is a web-based engineering intelligence platform that audits a student's public GitHub repository against the specific engineering expectations of their chosen target company. It delivers:
+**ProjectGlowUp AI** is a web-based engineering intelligence platform that audits a student's public GitHub repository against the specific engineering expectations of their chosen target company. It delivers:
 1. Grounded code-level red flags with direct file citations.
 2. An interactive Before/After architecture comparison in Mermaid.js.
 3. Runnable edge-case concurrency/load-test scripts for students to run locally.
@@ -112,7 +112,7 @@ A feature is complete only when:
 
 ```mermaid
 gantt
-    title RepoDoctor AI Hackathon Roadmap
+    title ProjectGlowUp AI Hackathon Roadmap
     dateFormat  HH
     axisFormat  %H:00
     section Foundation

@@ -1,6 +1,6 @@
 # Agent Operating Manual & Engineering Guide (AGENTS.md)
 
-**Project:** RepoDoctor AI (StackFit AI)  
+**Project:** ProjectGlowUp AI (StackFit AI)  
 **Hackathon Track:** Problem Statement 4 — Open Innovation (Student Pain Points)  
 **Authority Level:** Primary instruction manual for all autonomous AI coding agents operating on this repository.
 
@@ -8,7 +8,7 @@
 
 ## 1. Project Purpose & Scope
 
-RepoDoctor AI is an engineering intelligence web application that audits public GitHub repositories against domain expectations of top tech companies (Razorpay, Swiggy, Zerodha, Amazon). It identifies tutorial-clone anti-patterns, generates Before/After Mermaid.js architecture diagrams, and provides runnable concurrency test scripts.
+ProjectGlowUp AI is an engineering intelligence web application that audits public GitHub repositories against domain expectations of top tech companies (Razorpay, Swiggy, Zerodha, Amazon). It identifies tutorial-clone anti-patterns, generates Before/After Mermaid.js architecture diagrams, and provides runnable concurrency test scripts.
 
 ---
 
