@@ -88,7 +88,21 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
               onClick={() => loadPreset("https://github.com/expressjs/express", "razorpay")}
               className="px-2.5 py-1 rounded border border-cyan-800/40 bg-cyan-950/30 text-cyan-400 hover:bg-cyan-900/40 text-[11px] font-mono transition-colors"
             >
-              ⚡ Express.js → Razorpay
+              ⚡ Express → Razorpay
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPreset("https://github.com/fastify/fastify", "swiggy")}
+              className="px-2.5 py-1 rounded border border-amber-800/40 bg-amber-950/30 text-amber-400 hover:bg-amber-900/40 text-[11px] font-mono transition-colors"
+            >
+              ⚡ Fastify → Swiggy
+            </button>
+            <button
+              type="button"
+              onClick={() => loadPreset("https://github.com/tiangolo/fastapi", "zerodha")}
+              className="px-2.5 py-1 rounded border border-emerald-800/40 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40 text-[11px] font-mono transition-colors"
+            >
+              ⚡ FastAPI → Zerodha
             </button>
             <button
               type="button"

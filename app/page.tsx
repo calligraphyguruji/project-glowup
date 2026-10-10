@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { Sparkles, AlertCircle } from "lucide-react";
 import { AuditForm } from "@/components/AuditForm";
 import { FindingsView } from "@/components/FindingsView";
 import { MermaidViewer } from "@/components/MermaidViewer";
 import { TestScriptSandbox } from "@/components/TestScriptSandbox";
 import { InterviewDefense } from "@/components/InterviewDefense";
+import { ProgressTerminal } from "@/components/ProgressTerminal";
 import { AuditResponse, CompanyId } from "@/types/audit";
 
 export default function Home() {
@@ -64,18 +65,8 @@ export default function Home() {
       {/* Input Form */}
       <AuditForm onAudit={handleAudit} isLoading={isLoading} />
 
-      {/* Loading Progress State */}
-      {isLoading && (
-        <div className="rounded-xl border border-cyan-900/50 bg-slate-900/60 p-6 text-center space-y-4 font-mono">
-          <div className="inline-flex p-3 rounded-full bg-cyan-950 border border-cyan-800 animate-spin text-cyan-400">
-            <RefreshCw className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-sm text-cyan-300 font-semibold">{loadingStep}</p>
-            <p className="text-xs text-slate-500 mt-1">Executing deterministic rules and synthesizing domain standards...</p>
-          </div>
-        </div>
-      )}
+      {/* Terminal Progress State */}
+      <ProgressTerminal isLoading={isLoading} />
 
       {/* Error Banner */}
       {errorMessage && (
