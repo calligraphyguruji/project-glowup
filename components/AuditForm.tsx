@@ -316,14 +316,14 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
   return (
     <div className="flex flex-col gap-5">
       {/* 1. Ingest Chassis */}
-      <div className="rounded-xl bg-[#101114] border border-[#292A31] shadow-sm overflow-hidden">
-        <form onSubmit={handleSubmit} className="p-4 flex flex-col gap-3">
+      <div className="rounded-2xl bg-[#0E1116] border border-[#222730] shadow-md overflow-hidden">
+        <form onSubmit={handleSubmit} className="p-5 flex flex-col gap-3">
           <div className="flex items-center justify-between text-xs font-mono">
             <div className="flex items-center gap-2">
-              <span className="text-[#FF666B] font-bold">PG-AUDIT&gt;</span>
+              <span className="text-[#A3E635] font-bold">PG-AUDIT&gt;</span>
               <span className="text-[#A3A4AD] uppercase tracking-wider text-[11px]">TARGET REPOSITORY URI</span>
             </div>
-            <span className="text-[11px] text-[#A3A4AD] bg-[#17181D] px-2 py-0.5 rounded border border-[#292A31] font-mono">
+            <span className="text-[11px] text-[#A3A4AD] bg-[#13171D] px-2.5 py-0.5 rounded-full border border-[#222730] font-mono">
               ⌘K / ENTER
             </span>
           </div>
@@ -343,9 +343,9 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#FF666B] hover:bg-[#FF8588] text-[#08090B] font-sans font-bold text-xs shadow-[0_0_15px_rgba(255,102,107,0.3)] active:scale-95 disabled:bg-[#202127] disabled:text-[#747680] transition-all uppercase tracking-wider"
+              className="shrink-0 flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#A3E635] hover:bg-[#bef264] text-[#07080A] font-sans font-bold text-xs shadow-[0_0_20px_rgba(163,230,53,0.35)] active:scale-95 disabled:bg-[#1C222B] disabled:text-[#747680] transition-all uppercase tracking-wider"
             >
-              <Cpu className="w-4 h-4" />
+              <Cpu className="w-4 h-4 stroke-[2.5]" />
               <span>{isLoading ? "Ingesting..." : "Analyze Repository →"}</span>
             </button>
           </div>
@@ -393,12 +393,12 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
       </div>
 
       {/* 2. Unified Target Profile Calibration Deck */}
-      <div className="p-4 rounded-xl bg-[#101114] border border-[#292A31] shadow-sm space-y-4">
+      <div className="p-5 rounded-2xl bg-[#0E1116] border border-[#222730] shadow-md space-y-4">
         {/* Profile Header & Summary */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F2026] pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222730] pb-3">
           <div>
             <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#FF666B]" />
+              <Sparkles className="w-4 h-4 text-[#A3E635]" />
               <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#F5F5F6]">
                 AUDIT PROFILE &amp; EVALUATION CRITERIA
               </span>
@@ -409,8 +409,8 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
           </div>
 
           {/* Active Profile Telemetry Badge */}
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-[#17181D] border border-[#292A31] font-mono text-[11px]">
-            <span className="text-[#FF666B] font-semibold">{activeCompany.name}</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#13171D] border border-[#222730] font-mono text-[11px]">
+            <span className="text-[#A3E635] font-semibold">{activeCompany.name}</span>
             <span className="text-[#747680]">/</span>
             <span className="text-[#F5BD50]">{activeRole.title}</span>
             <span className="text-[#747680] text-[10px] uppercase">({activeRole.experienceLevel})</span>
@@ -614,7 +614,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                     type="button"
                     onClick={handleInspectCompany}
                     disabled={isInspectingCompany || !compName.trim()}
-                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#17181D] hover:bg-[#202127] text-[#FF666B] border border-[#FF666B]/30 hover:border-[#FF666B] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-medium bg-[#13171D] hover:bg-[#1C222B] text-[#A3E635] border border-[#A3E635]/40 hover:border-[#A3E635] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     {isInspectingCompany ? (
                       <>
@@ -705,7 +705,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 rounded-lg bg-[#FF666B] hover:bg-[#ff7b80] text-[#08090B] font-bold transition-colors"
+                  className="px-5 py-2 rounded-full bg-[#A3E635] hover:bg-[#bef264] text-[#07080A] font-bold shadow-[0_0_15px_rgba(163,230,53,0.3)] transition-colors"
                 >
                   Save Profile
                 </button>

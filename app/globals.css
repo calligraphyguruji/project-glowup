@@ -5,12 +5,13 @@
 @tailwind utilities;
 
 :root {
-  --background: #08090B;
+  --background: #07080A;
   --foreground: #F5F5F6;
-  --surface-primary: #101114;
-  --surface-secondary: #17181D;
-  --surface-elevated: #202127;
-  --border-subtle: #292A31;
+  --surface-primary: #0E1116;
+  --surface-secondary: #13171D;
+  --surface-elevated: #1C222B;
+  --border-subtle: #222730;
+  --lime-accent: #A3E635;
   --coral-accent: #FF666B;
 }
 
@@ -19,11 +20,12 @@ body {
   background: var(--background);
   font-family: var(--font-inter), "Geist", "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   min-height: 100vh;
-  background-color: #08090B;
+  background-color: #07080A;
   background-image: 
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(163, 230, 53, 0.07), transparent),
     linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-size: 100% 100%, 32px 32px, 32px 32px;
 }
 
 /* Custom scrollbars for high-density code and audit views */

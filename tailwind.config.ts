@@ -24,10 +24,22 @@ const config: Config = {
           coral: "#FF666B",
           coralHover: "#FF8588",
           coralMuted: "rgba(255, 102, 107, 0.12)",
+          lime: "#A3E635",
+          limeHover: "#BEF264",
+          limeDark: "#65A30D",
+          limeMuted: "rgba(163, 230, 53, 0.12)",
           success: "#45D6A0",
           warning: "#F5BD50",
           cyan: "#38BDF8",
           purple: "#A78BFA",
+        },
+        // Scrolltide Lime Palette
+        lime: {
+          DEFAULT: "#A3E635",
+          400: "#A3E635",
+          500: "#84CC16",
+          600: "#65A30D",
+          glow: "rgba(163, 230, 53, 0.35)",
         },
         // Backward compatibility mappings
         canvas: {

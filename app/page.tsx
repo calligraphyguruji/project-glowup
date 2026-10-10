@@ -74,8 +74,8 @@ export default function Home() {
     : null;
 
   return (
-    <div className="min-h-screen bg-[#08090B] text-[#F5F5F6] flex font-sans antialiased selection:bg-[#FF666B]/20 selection:text-[#FF666B]">
-      {/* Persistent Redmonk PaaS Dark Sidebar */}
+    <div className="min-h-screen bg-[#07080A] text-[#F5F5F6] flex font-sans antialiased selection:bg-[#A3E635]/20 selection:text-[#A3E635]">
+      {/* Persistent App Sidebar */}
       <AppSidebar
         activeTab={activeTab}
         onTabChange={(tab) => {
@@ -106,8 +106,8 @@ export default function Home() {
 
       {/* Main Workbench Viewport */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Developer Bar (Matching Redmonk Reference) */}
-        <header className="sticky top-0 z-30 h-14 bg-[#101114]/90 backdrop-blur-md border-b border-[#292A31] px-6 flex items-center justify-between">
+        {/* Top Developer Bar (Matching Scrolltide Reference) */}
+        <header className="sticky top-0 z-30 h-14 bg-[#0E1116]/90 backdrop-blur-md border-b border-[#222730] px-6 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 text-xs font-mono">
               <span className="text-[#A3A4AD]">WORKSPACE</span>
@@ -118,27 +118,27 @@ export default function Home() {
             </div>
 
             {auditData && (
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#17181D] border border-[#292A31] text-[#A3A4AD]">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#45D6A0]" />
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-[#13171D] border border-[#222730] text-[#A3A4AD]">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#A3E635]" />
                 {auditData.companyProfile.name} Invariants
               </span>
             )}
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#17181D] border border-[#292A31] font-mono text-[11px] text-[#A3A4AD]">
-              <span className="w-2 h-2 rounded-full bg-[#45D6A0] animate-pulse" />
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#13171D] border border-[#222730] font-mono text-[11px] text-[#A3A4AD]">
+              <span className="w-2 h-2 rounded-full bg-[#A3E635] shadow-[0_0_8px_#A3E635]" />
               <span className="hidden sm:inline">AST ENGINE:</span>
-              <span className="text-[#45D6A0] font-semibold">OPERATIONAL</span>
+              <span className="text-[#A3E635] font-semibold">OPERATIONAL</span>
             </div>
 
             <a
               href="https://github.com/calligraphyguruji/project-glowup"
               target="_blank"
               rel="noreferrer"
-              className="p-1.5 rounded-lg bg-[#17181D] hover:bg-[#202127] text-[#A3A4AD] hover:text-[#F5F5F6] border border-[#292A31] transition-colors flex items-center gap-1 text-xs font-mono"
+              className="p-1.5 rounded-lg bg-[#13171D] hover:bg-[#1C222B] text-[#A3A4AD] hover:text-[#F5F5F6] border border-[#222730] transition-colors flex items-center gap-1 text-xs font-mono"
             >
-              <GitBranch className="w-3.5 h-3.5 text-[#FF666B]" />
+              <GitBranch className="w-3.5 h-3.5 text-[#A3E635]" />
               <span className="hidden md:inline">v4.9</span>
             </a>
           </div>
@@ -181,17 +181,17 @@ export default function Home() {
           {auditData && !isLoading && (
             <div className="space-y-8 animate-in fade-in duration-300">
               {/* Telemetry Header Strip */}
-              <div id="section-overview" className="bg-[#101114] border border-[#292A31] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div id="section-overview" className="bg-[#0E1116] border border-[#222730] rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-md">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <h2 className="font-mono text-lg font-bold text-[#F5F5F6]">
                       {auditData.repoSummary.owner}/{auditData.repoSummary.repo}
                     </h2>
-                    <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-[#17181D] text-[#FF666B] border border-[#FF666B]/30 font-semibold uppercase">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[#13171D] text-[#A3E635] border border-[#A3E635]/30 font-semibold uppercase">
                       {auditData.companyProfile.name}
                     </span>
                     {auditData.targetRole && (
-                      <span className="px-2.5 py-0.5 rounded text-[11px] font-mono bg-[#17181D] text-[#45D6A0] border border-[#45D6A0]/30 font-semibold uppercase">
+                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[#13171D] text-[#A3E635] border border-[#A3E635]/30 font-semibold uppercase">
                         {auditData.targetRole.title} ({auditData.targetRole.experienceLevel})
                       </span>
                     )}
@@ -203,11 +203,11 @@ export default function Home() {
                   </p>
                 </div>
 
-                <div className="font-mono text-left md:text-right shrink-0 bg-[#17181D] border border-[#292A31] rounded-lg px-4 py-2">
-                  <span className="text-[10px] text-[#747680] uppercase tracking-wider block">Production Score</span>
+                <div className="font-mono text-left md:text-right shrink-0 bg-[#13171D] border border-[#222730] rounded-xl px-5 py-2.5">
+                  <span className="text-[10px] text-[#747680] uppercase tracking-wider block font-semibold">Production Score</span>
                   <span
                     className={`text-2xl font-black ${
-                      auditData.overallScore >= 70 ? "text-[#45D6A0]" : "text-[#FF666B]"
+                      auditData.overallScore >= 70 ? "text-[#A3E635]" : "text-[#FF666B]"
                     }`}
                   >
                     {auditData.overallScore}{" "}

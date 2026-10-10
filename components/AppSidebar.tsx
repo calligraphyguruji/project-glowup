@@ -37,18 +37,18 @@ export function AppSidebar({
   return (
     <aside className="w-64 shrink-0 hidden lg:flex flex-col bg-[#101114] border-r border-[#292A31] h-screen sticky top-0 z-40 select-none">
       {/* Brand Header */}
-      <div className="p-4 flex items-center justify-between border-b border-[#292A31]">
+      <div className="p-4 flex items-center justify-between border-b border-[#222730]">
         <div className="flex items-center gap-2.5">
-          {/* Coral Glow Icon Logo */}
-          <div className="w-8 h-8 rounded-full bg-[#17181D] border border-[#FF666B]/30 flex items-center justify-center relative shadow-[0_0_12px_rgba(255,102,107,0.25)]">
-            <div className="w-3.5 h-3.5 rounded-full border-2 border-[#FF666B] flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#FF666B]" />
+          {/* Scrolltide Lime Glow Icon Logo */}
+          <div className="w-8 h-8 rounded-full bg-[#13171D] border border-[#A3E635]/40 flex items-center justify-center relative shadow-[0_0_15px_rgba(163,230,53,0.3)]">
+            <div className="w-3.5 h-3.5 rounded-full border-2 border-[#A3E635] flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#A3E635]" />
             </div>
           </div>
           <div className="flex flex-col">
             <span className="font-sans font-bold text-sm tracking-tight text-[#F5F5F6] flex items-center gap-1.5">
               ProjectGlowUp
-              <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#FF666B]/15 text-[#FF666B] font-semibold border border-[#FF666B]/30">
+              <span className="font-mono text-[9px] px-1.5 py-0.2 rounded bg-[#A3E635]/15 text-[#A3E635] font-semibold border border-[#A3E635]/30">
                 AI
               </span>
             </span>
@@ -87,12 +87,12 @@ export function AppSidebar({
             onClick={() => onTabChange("overview")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "overview"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <LayoutDashboard className={`w-4 h-4 ${activeTab === "overview" ? "text-[#FF666B]" : "text-[#747680]"}`} />
+              <LayoutDashboard className={`w-4 h-4 ${activeTab === "overview" ? "text-[#A3E635]" : "text-[#747680]"}`} />
               <span>Overview</span>
             </div>
           </button>
@@ -101,12 +101,12 @@ export function AppSidebar({
             onClick={() => onTabChange("analysis")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "analysis"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <GitBranch className={`w-4 h-4 ${activeTab === "analysis" ? "text-[#FF666B]" : "text-[#747680]"}`} />
+              <GitBranch className={`w-4 h-4 ${activeTab === "analysis" ? "text-[#A3E635]" : "text-[#747680]"}`} />
               <span>Repository Analysis</span>
             </div>
           </button>
@@ -122,8 +122,8 @@ export function AppSidebar({
             onClick={() => onTabChange("vulnerabilities")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "vulnerabilities"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
@@ -135,7 +135,7 @@ export function AppSidebar({
                 className={`font-mono text-[10px] px-1.5 py-0.2 rounded font-bold ${
                   criticalCount > 0
                     ? "bg-[#FF666B]/20 text-[#FF666B] border border-[#FF666B]/30"
-                    : "bg-[#202127] text-[#A3A4AD]"
+                    : "bg-[#222730] text-[#A3A4AD]"
                 }`}
               >
                 {findingsCount}
@@ -147,12 +147,12 @@ export function AppSidebar({
             onClick={() => onTabChange("architecture")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "architecture"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Layers className={`w-4 h-4 ${activeTab === "architecture" ? "text-[#FF666B]" : "text-[#747680]"}`} />
+              <Layers className={`w-4 h-4 ${activeTab === "architecture" ? "text-[#A3E635]" : "text-[#747680]"}`} />
               <span>Architecture</span>
             </div>
           </button>
@@ -161,12 +161,12 @@ export function AppSidebar({
             onClick={() => onTabChange("concurrency")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "concurrency"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <Terminal className={`w-4 h-4 ${activeTab === "concurrency" ? "text-[#FF666B]" : "text-[#747680]"}`} />
+              <Terminal className={`w-4 h-4 ${activeTab === "concurrency" ? "text-[#A3E635]" : "text-[#747680]"}`} />
               <span>Load &amp; Concurrency</span>
             </div>
           </button>
@@ -175,12 +175,12 @@ export function AppSidebar({
             onClick={() => onTabChange("interview")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors text-left ${
               activeTab === "interview"
-                ? "bg-[#202127] text-[#F5F5F6] font-semibold border border-[#292A31] shadow-sm"
-                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#17181D]"
+                ? "bg-[#1C222B] text-[#F5F5F6] font-semibold border border-[#222730] shadow-sm"
+                : "text-[#A3A4AD] hover:text-[#F5F5F6] hover:bg-[#13171D]"
             }`}
           >
             <div className="flex items-center gap-2.5">
-              <HelpCircle className={`w-4 h-4 ${activeTab === "interview" ? "text-[#FF666B]" : "text-[#747680]"}`} />
+              <HelpCircle className={`w-4 h-4 ${activeTab === "interview" ? "text-[#A3E635]" : "text-[#747680]"}`} />
               <span>Interview Defense</span>
             </div>
           </button>
