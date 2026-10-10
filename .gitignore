@@ -13,6 +13,7 @@
 # Production
 /build
 /dist
+*.tsbuildinfo
 
 # Debug logs
 npm-debug.log*
@@ -34,6 +35,10 @@ yarn-error.log*
 .agents/*
 .planning/
 .planning/*
+planning/
+planning/*
+roadmap*
+ROADMAP*
 
 # Internal Agent & Planning Specifications
 AGENTS.md
