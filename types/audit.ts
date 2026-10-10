@@ -127,8 +127,18 @@ export interface AuditResponse {
   generatedAt: string;
   executionMode: "live_ai" | "heuristic_fallback" | "cached_demo";
   aiDiagnostics?: {
-    status: "configured_and_succeeded" | "key_missing" | "key_invalid" | "quota_exhausted" | "rate_limited" | "timeout" | "malformed_response" | "error";
+    status:
+      | "configured_and_succeeded"
+      | "fallback_succeeded"
+      | "key_missing"
+      | "key_invalid"
+      | "quota_exhausted"
+      | "rate_limited"
+      | "timeout"
+      | "malformed_response"
+      | "error";
     model: string;
+    provider?: "gemini" | "groq" | "heuristic";
     details?: string;
     timestamp: string;
     durationMs?: number;

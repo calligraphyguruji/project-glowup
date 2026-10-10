@@ -164,8 +164,10 @@ flowchart LR
 
 | Variable Name | Purpose | Required | Example / Default |
 |---|---|---|---|
-| `GEMINI_API_KEY` | Authenticates requests to Google AI Studio | **Yes** | `AIzaSy...` (Get free at [aistudio.google.com](https://aistudio.google.com/)) |
-| `GEMINI_MODEL` | Specifies the Gemini model identifier | No | `gemini-2.0-flash` |
+| `GEMINI_API_KEY` | Authenticates requests to Google AI Studio (Primary Provider) | **Yes** | `AIzaSy...` (Get free at [aistudio.google.com](https://aistudio.google.com/)) |
+| `GEMINI_MODEL` | Specifies the preferred Gemini model identifier | No | `gemini-2.0-flash` |
+| `GROQ_API_KEY` | Automatic fallback provider when Gemini is unresponsive or exhausted | No | `gsk_...` (Get free at [console.groq.com](https://console.groq.com/)) |
+| `GROQ_MODEL` | Specifies the preferred Groq model identifier | No | `openai/gpt-oss-120b` |
 | `GITHUB_TOKEN` | Raises GitHub rate limit from 60 to 5,000 req/hr | No | `ghp_...` (Read-only personal token) |
 | `NEXT_PUBLIC_APP_URL` | Base application URL for origin verification | No | `http://localhost:3000` |
 | `NODE_ENV` | Runtime environment mode | No | `development` |

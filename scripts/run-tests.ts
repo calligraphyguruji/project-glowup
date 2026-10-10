@@ -414,8 +414,10 @@ async function runUnitTests() {
 
   // Test 9.1: Missing key produces transparent key_missing diagnostic and never claims live_ai
   const origKey = process.env.GEMINI_API_KEY;
+  const origGroqKey = process.env.GROQ_API_KEY;
   delete process.env.GEMINI_API_KEY;
   delete process.env.GOOGLE_API_KEY;
+  delete process.env.GROQ_API_KEY;
 
   const missingKeyAudit = await runGeminiAudit(sampleOverview, sampleFiles, COMPANY_PROFILES.razorpay, []);
   assert(missingKeyAudit.executionMode === "heuristic_fallback", "Missing key falls back to heuristic engine");
@@ -436,9 +438,16 @@ async function runUnitTests() {
     `Invalid key classified safely (Got: ${invalidKeyAudit.aiDiagnostics?.status})`
   );
 
+  // Test 9.4: When Gemini is invalid/missing but Groq placeholder is present, safe heuristic fallback is maintained
+  process.env.GROQ_API_KEY = "your_groq_api_key_here";
+  const groqPlaceholderAudit = await runGeminiAudit(sampleOverview, sampleFiles, COMPANY_PROFILES.razorpay, []);
+  assert(groqPlaceholderAudit.executionMode === "heuristic_fallback", "Groq placeholder key safely treated as unconfigured");
+
   // Restore environment
   if (origKey) process.env.GEMINI_API_KEY = origKey;
   else delete process.env.GEMINI_API_KEY;
+  if (origGroqKey) process.env.GROQ_API_KEY = origGroqKey;
+  else delete process.env.GROQ_API_KEY;
 
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);

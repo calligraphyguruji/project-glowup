@@ -80,6 +80,19 @@ function getResolvedApiKey(): { key: string | null; keySource: string | null } {
 }
 
 /**
+ * Resolves the Groq API key from environment variables without exposing secrets.
+ */
+function getResolvedGroqApiKey(): { key: string | null; keySource: string | null } {
+  const candidate = process.env.GROQ_API_KEY;
+
+  if (!candidate || candidate.trim() === "" || candidate === "your_groq_api_key_here") {
+    return { key: null, keySource: null };
+  }
+
+  return { key: candidate.trim(), keySource: "GROQ_API_KEY" };
+}
+
+/**
  * Classifies an error thrown during a Gemini API call.
  */
 function classifyGeminiError(err: unknown): {
@@ -147,12 +160,142 @@ export async function runGeminiAudit(
   const { key: apiKey, keySource } = getResolvedApiKey();
   const configuredModel = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
-  // Case 1: No valid API key configured -> return explainable fallback with diagnostic
+  // Helper to run Groq fallback if Gemini is unconfigured or failed
+  const tryGroqFallback = async (geminiReason?: string): Promise<AuditResponse | null> => {
+    const { key: groqKey } = getResolvedGroqApiKey();
+    if (!groqKey) return null;
+
+    const groqCandidateModels = Array.from(
+      new Set([
+        process.env.GROQ_MODEL,
+        "openai/gpt-oss-120b",
+        "llama-3.3-70b-versatile",
+        "llama-3.1-8b-instant",
+      ].filter(Boolean) as string[])
+    );
+
+    const groqStart = Date.now();
+
+    for (const groqModel of groqCandidateModels) {
+      try {
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${groqKey}`,
+          },
+          body: JSON.stringify({
+            model: groqModel,
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert Staff Software Engineer and application security auditor. Return ONLY a valid JSON object matching the requested schema. No markdown fences, no conversational text.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.2,
+            response_format: { type: "json_object" },
+          }),
+        });
+
+        if (!groqRes.ok) {
+          const errText = await groqRes.text().catch(() => "");
+          console.warn(`[Groq Fallback] Model ${groqModel} returned status ${groqRes.status}: ${errText.slice(0, 100)}`);
+          continue;
+        }
+
+        const data = await groqRes.json();
+        const contentStr = data.choices?.[0]?.message?.content;
+        if (!contentStr) continue;
+
+        let parsed: GeminiAuditPayload;
+        try {
+          parsed = JSON.parse(contentStr);
+        } catch {
+          const cleanStr = contentStr.replace(/```json/g, "").replace(/```/g, "").trim();
+          parsed = JSON.parse(cleanStr);
+        }
+
+        const validFilePaths = new Set(files.map((f) => f.path));
+        const validatedAiFindings: AuditFinding[] = (parsed.findings || []).map((f, i) => {
+          const citedPath = validFilePaths.has(f.fileCitation)
+            ? f.fileCitation
+            : files[0]?.path || "package.json";
+          return {
+            id: `groq-finding-${i + 1}`,
+            severity: f.severity,
+            category: f.category,
+            title: f.title,
+            fileCitation: citedPath,
+            explanation: f.explanation,
+            remediation: f.remediation,
+            codeSnippet: f.codeSnippet,
+          };
+        });
+
+        const combinedFindings = [
+          ...staticFindings.filter((f) => f.severity !== "optimization"),
+          ...validatedAiFindings,
+        ];
+
+        const scoreResult = calculateAuditScore(combinedFindings, overview, files, stack);
+        const groqDuration = Date.now() - groqStart;
+
+        return {
+          repoSummary: overview,
+          companyProfile: company,
+          targetRole: targetRole,
+          overallScore: scoreResult.score,
+          scoreBreakdown: scoreResult,
+          findings: combinedFindings.length > 0 ? combinedFindings : staticFindings,
+          architectureComparison: {
+            currentMermaid: cleanMermaid(parsed.architectureComparison?.currentMermaid, "current", stack),
+            targetMermaid: cleanMermaid(parsed.architectureComparison?.targetMermaid, "target", stack),
+            currentSummary: parsed.architectureComparison?.currentSummary || "Architecture analyzed.",
+            targetSummary: parsed.architectureComparison?.targetSummary || "Target architecture modeled.",
+          },
+          stressTestScript: parsed.stressTestScript,
+          interviewDefense: parsed.interviewDefense || [],
+          generatedAt: new Date().toISOString(),
+          executionMode: "live_ai",
+          aiDiagnostics: {
+            status: "fallback_succeeded",
+            model: groqModel,
+            provider: "groq",
+            details: `Groq fallback succeeded (${groqDuration}ms)${geminiReason ? ` after Gemini fallback: ${geminiReason}` : ""}`,
+            timestamp: new Date().toISOString(),
+            durationMs: groqDuration,
+          },
+          detectedStack: {
+            type: stack.type,
+            frameworks: stack.frameworks,
+            databases: stack.databases,
+            endpointsCount: stack.discoveredEndpoints.length,
+          },
+        };
+      } catch (e: unknown) {
+        console.warn(`[Groq Fallback] Error with model ${groqModel}:`, e);
+      }
+    }
+
+    return null;
+  };
+
+  // Case 1: No valid Gemini API key configured -> check Groq fallback first
   if (!apiKey) {
+    const groqFallbackResult = await tryGroqFallback("Gemini key not defined in environment");
+    if (groqFallbackResult) {
+      return groqFallbackResult;
+    }
+
     const fallback = generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
     fallback.aiDiagnostics = {
       status: "key_missing",
       model: configuredModel,
+      provider: "heuristic",
       details: "GEMINI_API_KEY environment variable is not defined in the server environment.",
       timestamp: new Date().toISOString(),
     };
@@ -337,6 +480,7 @@ Return strictly JSON matching this structure:
         aiDiagnostics: {
           status: "configured_and_succeeded",
           model: modelName,
+          provider: "gemini",
           details: `Live AI synthesis verified via ${keySource} (${durationMs}ms)`,
           timestamp: new Date().toISOString(),
           durationMs,
@@ -360,14 +504,20 @@ Return strictly JSON matching this structure:
     }
   }
 
-  // If all candidate models failed
+  // If all candidate models in Gemini failed, attempt Groq fallback before heuristics
   const durationMs = Date.now() - startTime;
   const classified = classifyGeminiError(lastError);
+
+  const groqFallbackResult = await tryGroqFallback(classified.details);
+  if (groqFallbackResult) {
+    return groqFallbackResult;
+  }
 
   const fallback = generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
   fallback.aiDiagnostics = {
     status: classified.status,
     model: activeModelUsed,
+    provider: "heuristic",
     details: classified.details,
     timestamp: new Date().toISOString(),
     durationMs,

@@ -84,7 +84,7 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
           {audit.executionMode === "live_ai" ? (
             <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#A3E635]/15 text-[#A3E635] border border-[#A3E635]/30">
               <span className="w-1.5 h-1.5 rounded-full bg-[#A3E635] animate-pulse" />
-              LIVE GEMINI
+              {audit.aiDiagnostics?.provider === "groq" ? "LIVE GROQ" : "LIVE GEMINI"}
             </span>
           ) : (
             <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-mono font-medium bg-[#13171D] text-[#A3A4AD] border border-[#222730]">
@@ -102,8 +102,10 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
           {audit.aiDiagnostics ? (
             audit.aiDiagnostics.status === "configured_and_succeeded"
               ? `Gemini ${audit.aiDiagnostics.model} verified`
+              : audit.aiDiagnostics.status === "fallback_succeeded"
+              ? `Groq ${audit.aiDiagnostics.model} fallback verified`
               : audit.aiDiagnostics.status === "key_missing"
-              ? "Gemini key not configured (heuristics active)"
+              ? "AI keys not configured (heuristics active)"
               : audit.aiDiagnostics.status === "key_invalid"
               ? "Gemini key rejected (401)"
               : audit.aiDiagnostics.details?.slice(0, 40)
