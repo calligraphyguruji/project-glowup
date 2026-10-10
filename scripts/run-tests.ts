@@ -69,6 +69,30 @@ function runUnitTests() {
   const hasIdempotencyFinding = razorpayFindings.some((f) => f.title.includes("Idempotency-Key"));
   assert(hasIdempotencyFinding, "Detects missing idempotency key on checkout endpoint");
 
+  // Geospatial Indexing Test (Swiggy)
+  const swiggyFiles: RepoFile[] = [
+    {
+      path: "models/restaurant.js",
+      content: "const RestaurantSchema = new Schema({ name: String, latitude: Number, longitude: Number });",
+      size: 90,
+      score: 95,
+    },
+  ];
+  const swiggyFindings = runStaticAudit(swiggyFiles, "swiggy");
+  assert(swiggyFindings.some((f) => f.category === "Geospatial Performance"), "Detects unindexed geospatial coordinates for Swiggy");
+
+  // Secret Detection Test
+  const secretFiles: RepoFile[] = [
+    {
+      path: "config/keys.js",
+      content: "const stripe_key = 'sk_live_abcdef1234567890';",
+      size: 45,
+      score: 60,
+    },
+  ];
+  const secretFindings = runStaticAudit(secretFiles, "amazon");
+  assert(secretFindings.some((f) => f.category.includes("Security")), "Detects hardcoded API secrets in source files");
+
   // 4. Company Profiles & Clean Rules Fallback
   console.log("\n[4/4] Testing Company Profiles & Fallback Safety...");
   assert(Object.keys(COMPANY_PROFILES).length === 4, "Configures 4 domain profiles (Razorpay, Swiggy, Zerodha, Amazon)");
@@ -86,6 +110,7 @@ function runUnitTests() {
 
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);
+  process.exit(0);
 }
 
 runUnitTests();
