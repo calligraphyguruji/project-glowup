@@ -154,27 +154,30 @@ export async function runGeminiAudit(
 
   const startTime = Date.now();
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: configuredModel,
-      generationConfig: {
-        responseMimeType: "application/json",
-        temperature: 0.2,
-      },
-    });
+  // Models to attempt: User-configured, gemini-1.5-flash (widely supported), gemini-2.0-flash, gemini-1.5-pro
+  const candidateModels = Array.from(
+    new Set([
+      process.env.GEMINI_MODEL,
+      "gemini-1.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-pro",
+    ].filter(Boolean) as string[])
+  );
 
-    const sanitizeCode = (content: string) =>
-      content.replaceAll("</untrusted_source_code>", "<\\/untrusted_source_code>");
+  let lastError: unknown = null;
+  let activeModelUsed = candidateModels[0];
 
-    const fileSummaries = files
-      .map(
-        (f) =>
-          `FILE: ${f.path}\n<untrusted_source_code>\n${sanitizeCode(f.content.slice(0, 4000))}\n</untrusted_source_code>`
-      )
-      .join("\n\n");
+  const sanitizeCode = (content: string) =>
+    content.replaceAll("</untrusted_source_code>", "<\\/untrusted_source_code>");
 
-    const prompt = `
+  const fileSummaries = files
+    .map(
+      (f) =>
+        `FILE: ${f.path}\n<untrusted_source_code>\n${sanitizeCode(f.content.slice(0, 4000))}\n</untrusted_source_code>`
+    )
+    .join("\n\n");
+
+  const prompt = `
 You are a Staff Software Engineer and Technical Interviewer at ${company.name} (${company.domain}).
 Analyze this candidate's repository files against your company's production engineering standards${targetRole ? ` and the specific expectations for the role: ${targetRole.title} (${targetRole.experienceLevel.toUpperCase()})` : ""}.
 
@@ -253,94 +256,116 @@ Return strictly JSON matching this structure:
 }
 `;
 
-    // 8-second client-side timeout promise to protect against serverless freeze
-    const generatePromise = model.generateContent(prompt);
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("Gemini generation timed out after 9000ms")), 9000)
-    );
+  const genAI = new GoogleGenerativeAI(apiKey);
 
-    const result = await Promise.race([generatePromise, timeoutPromise]);
-    const durationMs = Date.now() - startTime;
-    const text = result.response.text();
-
-    let parsed: GeminiAuditPayload;
+  for (const modelName of candidateModels) {
     try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error(`Invalid JSON syntax returned by Gemini model (${text.slice(0, 100)})`);
-    }
+      activeModelUsed = modelName;
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      });
 
-    // Validate reported file citations against real repository files
-    const validFilePaths = new Set(files.map((f) => f.path));
-    const validatedAiFindings: AuditFinding[] = (parsed.findings || []).map((f, i) => {
-      const citedPath = validFilePaths.has(f.fileCitation)
-        ? f.fileCitation
-        : files[0]?.path || "package.json";
+      const generatePromise = model.generateContent(prompt);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Gemini generation timed out after 9000ms")), 9000)
+      );
+
+      const result = await Promise.race([generatePromise, timeoutPromise]);
+      const durationMs = Date.now() - startTime;
+      const text = result.response.text();
+
+      let parsed: GeminiAuditPayload;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        throw new Error(`Invalid JSON syntax returned by Gemini model (${text.slice(0, 100)})`);
+      }
+
+      // Validate reported file citations against real repository files
+      const validFilePaths = new Set(files.map((f) => f.path));
+      const validatedAiFindings: AuditFinding[] = (parsed.findings || []).map((f, i) => {
+        const citedPath = validFilePaths.has(f.fileCitation)
+          ? f.fileCitation
+          : files[0]?.path || "package.json";
+        return {
+          id: `ai-finding-${i + 1}`,
+          severity: f.severity,
+          category: f.category,
+          title: f.title,
+          fileCitation: citedPath,
+          explanation: f.explanation,
+          remediation: f.remediation,
+          codeSnippet: f.codeSnippet,
+        };
+      });
+
+      const combinedFindings = [
+        ...staticFindings.filter((f) => f.severity !== "optimization"),
+        ...validatedAiFindings,
+      ];
+
+      const scoreResult = calculateAuditScore(combinedFindings, overview, files, stack);
+
       return {
-        id: `ai-finding-${i + 1}`,
-        severity: f.severity,
-        category: f.category,
-        title: f.title,
-        fileCitation: citedPath,
-        explanation: f.explanation,
-        remediation: f.remediation,
-        codeSnippet: f.codeSnippet,
+        repoSummary: overview,
+        companyProfile: company,
+        targetRole: targetRole,
+        overallScore: scoreResult.score,
+        scoreBreakdown: scoreResult,
+        findings: combinedFindings.length > 0 ? combinedFindings : staticFindings,
+        architectureComparison: {
+          currentMermaid: cleanMermaid(parsed.architectureComparison?.currentMermaid, "current", stack),
+          targetMermaid: cleanMermaid(parsed.architectureComparison?.targetMermaid, "target", stack),
+          currentSummary: parsed.architectureComparison?.currentSummary || "Architecture analyzed.",
+          targetSummary: parsed.architectureComparison?.targetSummary || "Target architecture modeled.",
+        },
+        stressTestScript: parsed.stressTestScript,
+        interviewDefense: parsed.interviewDefense || [],
+        generatedAt: new Date().toISOString(),
+        executionMode: "live_ai",
+        aiDiagnostics: {
+          status: "configured_and_succeeded",
+          model: modelName,
+          details: `Live AI synthesis verified via ${keySource} (${durationMs}ms)`,
+          timestamp: new Date().toISOString(),
+          durationMs,
+        },
+        detectedStack: {
+          type: stack.type,
+          frameworks: stack.frameworks,
+          databases: stack.databases,
+          endpointsCount: stack.discoveredEndpoints.length,
+        },
       };
-    });
-
-    const combinedFindings = [
-      ...staticFindings.filter((f) => f.severity !== "optimization"),
-      ...validatedAiFindings,
-    ];
-
-    const scoreResult = calculateAuditScore(combinedFindings, overview, files, stack);
-
-    return {
-      repoSummary: overview,
-      companyProfile: company,
-      targetRole: targetRole,
-      overallScore: scoreResult.score,
-      scoreBreakdown: scoreResult,
-      findings: combinedFindings.length > 0 ? combinedFindings : staticFindings,
-      architectureComparison: {
-        currentMermaid: cleanMermaid(parsed.architectureComparison?.currentMermaid, "current", stack),
-        targetMermaid: cleanMermaid(parsed.architectureComparison?.targetMermaid, "target", stack),
-        currentSummary: parsed.architectureComparison?.currentSummary || "Architecture analyzed.",
-        targetSummary: parsed.architectureComparison?.targetSummary || "Target architecture modeled.",
-      },
-      stressTestScript: parsed.stressTestScript,
-      interviewDefense: parsed.interviewDefense || [],
-      generatedAt: new Date().toISOString(),
-      executionMode: "live_ai",
-      aiDiagnostics: {
-        status: "configured_and_succeeded",
-        model: configuredModel,
-        details: `Live AI synthesis verified via ${keySource} (${durationMs}ms)`,
-        timestamp: new Date().toISOString(),
-        durationMs,
-      },
-      detectedStack: {
-        type: stack.type,
-        frameworks: stack.frameworks,
-        databases: stack.databases,
-        endpointsCount: stack.discoveredEndpoints.length,
-      },
-    };
-  } catch (err: unknown) {
-    const durationMs = Date.now() - startTime;
-    const classified = classifyGeminiError(err);
-
-    // Fallback to deterministic static + heuristic findings with explicit error reason
-    const fallback = generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
-    fallback.aiDiagnostics = {
-      status: classified.status,
-      model: configuredModel,
-      details: classified.details,
-      timestamp: new Date().toISOString(),
-      durationMs,
-    };
-    return fallback;
+    } catch (err: unknown) {
+      lastError = err;
+      const errStr = String(err);
+      // If error is 404 Model Not Found, continue to next candidate model
+      if (errStr.includes("404") || errStr.includes("not found") || errStr.includes("models/")) {
+        continue;
+      }
+      // If error is auth or quota, break early
+      break;
+    }
   }
+
+  // If all candidate models failed
+  const durationMs = Date.now() - startTime;
+  const classified = classifyGeminiError(lastError);
+
+  const fallback = generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
+  fallback.aiDiagnostics = {
+    status: classified.status,
+    model: activeModelUsed,
+    details: classified.details,
+    timestamp: new Date().toISOString(),
+    durationMs,
+  };
+  return fallback;
 }
 
 function cleanMermaid(str: string, fallbackType: "current" | "target", stack: DetectedStack): string {
