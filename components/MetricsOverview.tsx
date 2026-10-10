@@ -64,13 +64,16 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
           <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">SOURCE FOOTPRINT</span>
           <Layers className="w-4 h-4 text-[#A3A4AD]" />
         </div>
-        <div className="mt-2.5">
+        <div className="mt-2.5 flex items-baseline gap-1.5">
           <span className="font-mono text-2xl font-bold text-[#F5F5F6]">
-            {audit.repoSummary.filesIngested} FILES
+            {audit.repoSummary.filesIngested}
+          </span>
+          <span className="font-mono text-xs text-[#747680]">
+            / {audit.repoSummary.totalFilesDiscovered} FILES
           </span>
         </div>
         <span className="font-mono text-[10px] text-[#747680] truncate mt-1.5">
-          Branch: {audit.repoSummary.defaultBranch}
+          Priority Ingestion · {audit.repoSummary.defaultBranch}
         </span>
       </div>
 
