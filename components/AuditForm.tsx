@@ -12,6 +12,8 @@ import {
   Briefcase,
   Building,
   Sparkles,
+  Globe,
+  Loader2,
 } from "lucide-react";
 import { CompanyId, CompanyProfile, TargetRole, ExperienceLevel } from "@/types/audit";
 import { COMPANY_PROFILES } from "@/lib/companies";
@@ -44,6 +46,8 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
   // Modals / Editors state
   const [showCompanyModal, setShowCompanyModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [isInspectingCompany, setIsInspectingCompany] = useState(false);
+  const [inspectMessage, setInspectMessage] = useState<string | null>(null);
 
   // Company form inputs
   const [compName, setCompName] = useState("");
@@ -181,6 +185,45 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
     resetCompanyForm();
   };
 
+  // Web & Requirement Inspection for Custom Company
+  const handleInspectCompany = async () => {
+    if (!compName.trim()) {
+      setInspectMessage("Please enter a company name first.");
+      return;
+    }
+
+    setIsInspectingCompany(true);
+    setInspectMessage("Inspecting company requirements and architectural standards from the web...");
+
+    try {
+      const res = await fetch("/api/inspect-company", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          companyName: compName.trim(),
+          website: compWebsite.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || "Inspection failed.");
+      }
+
+      if (data.domain) setCompDomain(data.domain);
+      if (data.tagline) setCompTagline(data.tagline);
+      if (Array.isArray(data.keyConcerns) && data.keyConcerns.length > 0) {
+        setCompConcerns(data.keyConcerns.join(", "));
+      }
+      setInspectMessage("Requirements and invariants automatically inspected from the web.");
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to inspect requirements.";
+      setInspectMessage(`Note: ${msg}`);
+    } finally {
+      setIsInspectingCompany(false);
+    }
+  };
+
   const resetCompanyForm = () => {
     setCompName("");
     setCompDomain("");
@@ -188,6 +231,8 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
     setCompConcerns("");
     setCompWebsite("");
     setEditingCompId(null);
+    setInspectMessage(null);
+    setIsInspectingCompany(false);
   };
 
   const handleDeleteCompany = (id: string, e: React.MouseEvent) => {
@@ -559,16 +604,54 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
 
             <form onSubmit={handleSaveCompany} className="space-y-3.5">
               <div>
-                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Company Name *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] text-[#A3A4AD] font-medium">Company Name *</label>
+                  <button
+                    type="button"
+                    onClick={handleInspectCompany}
+                    disabled={isInspectingCompany || !compName.trim()}
+                    className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-[#17181D] hover:bg-[#202127] text-[#FF666B] border border-[#FF666B]/30 hover:border-[#FF666B] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {isInspectingCompany ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Inspecting Web...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe className="w-3 h-3" />
+                        <span>Inspect Web Requirements</span>
+                      </>
+                    )}
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={compName}
                   onChange={(e) => setCompName(e.target.value)}
-                  placeholder="e.g. Stripe, OpenAI, MyStartup"
+                  placeholder="e.g. Stripe, OpenAI, Datadog"
                   className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
+
+              <div>
+                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Official Website (optional)</label>
+                <input
+                  type="text"
+                  value={compWebsite}
+                  onChange={(e) => setCompWebsite(e.target.value)}
+                  placeholder="https://company.com"
+                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
+                />
+              </div>
+
+              {inspectMessage && (
+                <div className="p-2.5 rounded-lg bg-[#17181D] border border-[#292A31] font-mono text-[10px] text-[#A3A4AD] flex items-center gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isInspectingCompany ? "bg-[#FF666B] animate-ping" : "bg-[#45D6A0]"}`} />
+                  <span className="truncate">{inspectMessage}</span>
+                </div>
+              )}
 
               <div>
                 <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Industry / Domain</label>
@@ -601,17 +684,6 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                   value={compConcerns}
                   onChange={(e) => setCompConcerns(e.target.value)}
                   placeholder="e.g. Idempotency guards, Zero packet loss, Sub-10ms P99 latency"
-                  className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-[#A3A4AD] mb-1 font-medium">Website (optional)</label>
-                <input
-                  type="text"
-                  value={compWebsite}
-                  onChange={(e) => setCompWebsite(e.target.value)}
-                  placeholder="https://example.com"
                   className="w-full bg-[#17181D] px-3 py-2 rounded-lg text-[#F5F5F6] placeholder-[#747680] border border-[#292A31] focus:outline-none focus:border-[#FF666B]"
                 />
               </div>
