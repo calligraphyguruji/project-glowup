@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "ProjectGlowUp AI System Architecture",
+    "output": "projectglowup-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "audit-flow",
+        "label": "Audit Request Flow",
+        "focus": ["client", "edge_router", "audit_handler", "tree_ingestor", "github_api"],
+        "note": "Follow the repository audit submission from user interface through bounded tree ingestion."
+      },
+      {
+        "id": "analysis-synthesis",
+        "label": "Intelligence & Scoring",
+        "focus": ["audit_handler", "static_engine", "gemini_ai", "scoring_engine", "client"],
+        "note": "Inspect deterministic AST rules, Google Gemini Flash synthesis, and transparent score calculation."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Workbench Client",
+      "sublabel": "Next.js 14 App Router",
+      "brand": "next-js",
+      "pos": [40, 260],
+      "size": [140, 60]
+    },
+    {
+      "id": "edge_router",
+      "type": "cloud",
+      "label": "Edge Gateway",
+      "sublabel": "Rate Limiter",
+      "brand": "vercel",
+      "pos": [260, 260],
+      "size": [140, 60]
+    },
+    {
+      "id": "audit_handler",
+      "type": "backend",
+      "label": "Audit Handler",
+      "sublabel": "POST /api/audit",
+      "pos": [480, 260],
+      "size": [140, 60]
+    },
+    {
+      "id": "tree_ingestor",
+      "type": "backend",
+      "label": "Tree Ingestor",
+      "sublabel": "lib/github.ts",
+      "pos": [700, 120],
+      "size": [140, 60]
+    },
+    {
+      "id": "static_engine",
+      "type": "backend",
+      "label": "Static AST Scanner",
+      "sublabel": "lib/staticRules.ts",
+      "pos": [700, 260],
+      "size": [140, 60]
+    },
+    {
+      "id": "scoring_engine",
+      "type": "backend",
+      "label": "Scoring Engine",
+      "sublabel": "lib/scorer.ts",
+      "pos": [700, 400],
+      "size": [140, 60]
+    },
+    {
+      "id": "github_api",
+      "type": "external",
+      "label": "GitHub REST API",
+      "sublabel": "v3 Trees & Blobs",
+      "brand": "github",
+      "pos": [920, 120],
+      "size": [140, 60]
+    },
+    {
+      "id": "gemini_ai",
+      "type": "external",
+      "label": "Gemini 2.0 Flash",
+      "sublabel": "Semantic Synthesis",
+      "brand": "google-gemini",
+      "pos": [920, 260],
+      "size": [140, 60]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "ProjectGlowUp Serverless Runtime",
+      "wraps": ["edge_router", "audit_handler", "tree_ingestor", "static_engine", "scoring_engine"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "client-to-edge",
+      "from": "client",
+      "to": "edge_router",
+      "label": "POST audit",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge-to-handler",
+      "from": "edge_router",
+      "to": "audit_handler"
+    },
+    {
+      "id": "handler-to-tree",
+      "from": "audit_handler",
+      "to": "tree_ingestor",
+      "label": "ingest",
+      "fromSide": "top",
+      "toSide": "left"
+    },
+    {
+      "id": "tree-to-github",
+      "from": "tree_ingestor",
+      "to": "github_api",
+      "label": "fetch tree"
+    },
+    {
+      "id": "handler-to-static",
+      "from": "audit_handler",
+      "to": "static_engine",
+      "label": "AST scan"
+    },
+    {
+      "id": "static-to-gemini",
+      "from": "static_engine",
+      "to": "gemini_ai",
+      "label": "synthesis"
+    },
+    {
+      "id": "handler-to-scorer",
+      "from": "audit_handler",
+      "to": "scoring_engine",
+      "label": "score",
+      "fromSide": "bottom",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Ingestion Pipeline",
+      "items": [
+        "Recursive Git tree discovery with non-code filtering",
+        "Raw CDN fallback with 50 KB per-file budget"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Dual-Track Analysis",
+      "items": [
+        "Deterministic AST scanning with line citations",
+        "Google Gemini Flash semantic architecture synthesis"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Transparent Evaluation",
+      "items": [
+        "Severity deductions (-18 critical, -7 warning)",
+        "Company invariant rubric & target role calibration"
+      ]
+    }
+  ]
+}

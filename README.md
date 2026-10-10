@@ -58,6 +58,51 @@ Engineering students spend hundreds of hours following online tutorials to build
 
 ---
 
+## System Architecture (Generated with Archify)
+
+ProjectGlowUp AI is built as a serverless pipeline with zero runtime database dependencies, designed for low latency, reproducible evaluations, and defensive execution bounds.
+
+An interactive, showcase-grade architecture viewer with inline SVG and dark/light modes is rendered at [`public/architecture.html`](file:///Users/calligraphyguruji/Azisly%20Hackathon/public/architecture.html).
+
+```mermaid
+flowchart LR
+    subgraph Client["Frontend (Next.js 14 App Router)"]
+        UI["Workbench Client UI"]
+        Telemetry["Live Telemetry & Metrics"]
+    end
+
+    subgraph Serverless["Vercel Serverless Runtime"]
+        Gateway["Edge Gateway (IP Rate Limiter)"]
+        AuditHandler["Audit Route Handler (POST /api/audit)"]
+        TreeIngestor["Tree Ingestor & Filter (lib/github.ts)"]
+        StaticScanner["Static AST Scanner (lib/staticRules.ts)"]
+        Scorer["Scoring Engine (lib/scorer.ts)"]
+    end
+
+    subgraph External["External APIs"]
+        GitHub["GitHub REST API v3 (Git Trees & Blobs)"]
+        Gemini["Google Gemini 2.0 Flash (Semantic Synthesis)"]
+    end
+
+    UI -->|POST audit| Gateway
+    Gateway -->|Token bucket| AuditHandler
+    AuditHandler -->|Fetch tree| TreeIngestor
+    TreeIngestor -->|Recursive git tree| GitHub
+    AuditHandler -->|Evidence scan| StaticScanner
+    StaticScanner -->|Domain rubric| Gemini
+    AuditHandler -->|Calculate score| Scorer
+    AuditHandler -->|AuditResponse| Telemetry
+```
+
+### Architectural Subsystems
+1. **Edge Gateway & SSRF Boundary:** Validates public GitHub URLs against strict regex allowlists and enforces sliding-window IP rate limiting.
+2. **Bounded Tree Ingestor:** Discovers repository git trees recursively, filters non-code assets and documentation, and prioritizes schemas, models, and server entrypoints up to a 50 KB per-file budget.
+3. **Deterministic AST Scanner:** Inspects code syntax for IEEE-754 float currency representation, missing idempotency headers, unindexed geospatial queries, and hardcoded credentials with exact 1-indexed line numbers.
+4. **Google Gemini Flash Synthesizer:** Grounds architectural Before/After Mermaid diagrams and concurrency test scripts in observed routes and candidate tech stack.
+5. **Explainable Scoring Engine:** Computes transparent grades (A–F) through calibrated severity deductions (-18 critical, -7 warning) and coverage factors.
+
+---
+
 ## Proposed Solution & Core Features
 
 ```mermaid
