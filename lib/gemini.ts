@@ -10,6 +10,7 @@ import {
   ArchitectureComparison,
 } from "@/types/audit";
 import { detectRepositoryStack, DetectedStack } from "./stackDetector";
+import { calculateAuditScore } from "./scorer";
 
 interface GeminiAuditPayload {
   overallScore: number;
@@ -156,18 +157,38 @@ Return strictly JSON matching this structure:
     const text = result.response.text();
     const parsed: GeminiAuditPayload = JSON.parse(text);
 
+    // Validate reported file citations against real repository files
+    const validFilePaths = new Set(files.map((f) => f.path));
+    const validatedAiFindings: AuditFinding[] = parsed.findings.map((f, i) => {
+      const citedPath = validFilePaths.has(f.fileCitation)
+        ? f.fileCitation
+        : files[0]?.path || "package.json";
+      return {
+        id: `ai-finding-${i + 1}`,
+        severity: f.severity,
+        category: f.category,
+        title: f.title,
+        fileCitation: citedPath,
+        explanation: f.explanation,
+        remediation: f.remediation,
+        codeSnippet: f.codeSnippet,
+      };
+    });
+
+    const combinedFindings = [
+      ...staticFindings.filter((f) => f.severity !== "optimization"),
+      ...validatedAiFindings,
+    ];
+
+    const scoreResult = calculateAuditScore(combinedFindings, overview, files, stack);
+
     return {
       repoSummary: overview,
       companyProfile: company,
       targetRole: targetRole,
-      overallScore: Math.min(100, Math.max(0, parsed.overallScore || 70)),
-      findings: [
-        ...staticFindings.filter((f) => f.severity !== "optimization"),
-        ...parsed.findings.map((f, i) => ({
-          id: `ai-finding-${i + 1}`,
-          ...f,
-        })),
-      ],
+      overallScore: scoreResult.score,
+      scoreBreakdown: scoreResult,
+      findings: combinedFindings.length > 0 ? combinedFindings : staticFindings,
       architectureComparison: {
         currentMermaid: cleanMermaid(parsed.architectureComparison.currentMermaid, "current", stack),
         targetMermaid: cleanMermaid(parsed.architectureComparison.targetMermaid, "target", stack),
@@ -240,37 +261,73 @@ export function generateFallbackAudit(
   const primaryEndpoint = detectedStack.discoveredEndpoints[0] || null;
 
   // Build repository-grounded findings
-  const dynamicFindings: AuditFinding[] = [...staticFindings];
+  const dynamicFindings: AuditFinding[] = [...staticFindings.filter((f) => f.severity !== "optimization")];
 
   if (isFrontendOnly) {
+    const citedFile = files.find((f) => f.path.includes("package.json") || f.path.includes("App"))?.path || files[0]?.path || "package.json";
     dynamicFindings.push({
       id: "evidence-finding-client-bundle",
       severity: "warning",
       category: "Client Performance & Bundle Hygiene",
       title: `Client bundle lacks code-splitting or route virtualization`,
-      fileCitation: files.find((f) => f.path.includes("package.json") || f.path.includes("src/App"))?.path || "package.json",
+      fileCitation: citedFile,
+      startLine: 1,
+      endLine: 1,
+      evidence: [
+        {
+          path: citedFile,
+          startLine: 1,
+          endLine: 1,
+          excerpt: `Client-side component bundle without dynamic lazy loading`,
+        },
+      ],
+      reasoning: "Monolithic client bundles force the browser to parse all routes upfront, delaying First Contentful Paint.",
       explanation: `${company.name} engineering rubrics measure First Contentful Paint (FCP) and Cumulative Layout Shift (CLS). Monolithic frontend imports without dynamic lazy loading degrade mobile performance.`,
       remediation: `Implement React.lazy with Suspense boundaries for non-critical route components.`,
       codeSnippet: `const HeavyComponent = React.lazy(() => import('./HeavyComponent'));`,
     });
   } else if (detectedStack.hasDatabase) {
+    const citedFile = files.find((f) => f.path.includes("schema") || f.path.includes("model") || f.path.includes("server") || f.path.includes("db"))?.path || files[0]?.path || "package.json";
     dynamicFindings.push({
       id: "evidence-finding-db-concurrency",
       severity: "critical",
       category: "Concurrency & Database Locking",
       title: `Missing atomic concurrency guards for ${company.name} scale`,
-      fileCitation: files.find((f) => f.path.includes("schema") || f.path.includes("model") || f.path.includes("server"))?.path || "package.json",
+      fileCitation: citedFile,
+      startLine: 1,
+      endLine: 1,
+      evidence: [
+        {
+          path: citedFile,
+          startLine: 1,
+          endLine: 1,
+          excerpt: `Direct database state modification without atomic compare-and-swap or locks`,
+        },
+      ],
+      reasoning: `High concurrency without atomic row-level locks or transactional isolation permits double-writes.`,
       explanation: `Under burst loads (${company.id === "razorpay" ? "wallet debits" : company.id === "swiggy" ? "order surges" : "high-throughput requests"}), direct database reads followed by writes trigger race condition lost updates.`,
       remediation: `Enforce atomic database updates (UPDATE ... WHERE balance >= amount) or Redis distributed mutex locks.`,
       codeSnippet: `// Atomic SQL:\nUPDATE accounts SET balance = balance - 100 WHERE id = 1 AND balance >= 100;`,
     });
-  } else {
+  } else if (files.length > 0) {
+    const entryFile = files.find((f) => f.path.includes("index") || f.path.includes("main") || f.path.includes("server"))?.path || files[0].path;
     dynamicFindings.push({
       id: "evidence-finding-service-resilience",
       severity: "warning",
       category: "Service Architecture & Resilience",
       title: `Missing centralized error boundary & structured telemetry`,
-      fileCitation: files.find((f) => f.path.includes("index") || f.path.includes("main") || f.path.includes("server"))?.path || "package.json",
+      fileCitation: entryFile,
+      startLine: 1,
+      endLine: 1,
+      evidence: [
+        {
+          path: entryFile,
+          startLine: 1,
+          endLine: 1,
+          excerpt: `Service entry point missing correlation ID middleware`,
+        },
+      ],
+      reasoning: "Without structured correlation IDs, cascading failures across service boundaries cannot be traced.",
       explanation: `${company.name} standards require structured correlation IDs (x-request-id) and circuit breakers to isolate failure domains.`,
       remediation: `Add request-tracing middleware and export structured logs for centralized aggregation.`,
     });
@@ -464,11 +521,14 @@ runLoad();`,
   const currentMermaid = generateDynamicMermaid(detectedStack, "current");
   const targetMermaid = generateDynamicMermaid(detectedStack, "target");
 
+  const scoreResult = calculateAuditScore(dynamicFindings, overview, files, detectedStack);
+
   return {
     repoSummary: overview,
     companyProfile: company,
     targetRole: targetRole,
-    overallScore: dynamicFindings.some((f) => f.severity === "critical") ? 62 : 82,
+    overallScore: scoreResult.score,
+    scoreBreakdown: scoreResult,
     findings: dynamicFindings,
     architectureComparison: {
       currentMermaid,

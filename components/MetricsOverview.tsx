@@ -17,7 +17,13 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
       <div className="p-3 rounded-xl bg-surface-container-low border border-white/5 flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">SCORE INDEX</span>
-          <span className={`w-2 h-2 rounded-full ${audit.overallScore >= 70 ? "bg-tertiary-container shadow-[0_0_6px_rgba(55,248,170,0.8)]" : "bg-error shadow-[0_0_6px_rgba(255,59,48,0.8)]"}`}></span>
+          {audit.scoreBreakdown ? (
+            <span className="px-1.5 py-0.2 rounded font-mono text-[10px] font-bold bg-surface-container-high text-primary-container border border-white/10">
+              GRADE {audit.scoreBreakdown.grade}
+            </span>
+          ) : (
+            <span className={`w-2 h-2 rounded-full ${audit.overallScore >= 70 ? "bg-tertiary-container shadow-[0_0_6px_rgba(55,248,170,0.8)]" : "bg-error shadow-[0_0_6px_rgba(255,59,48,0.8)]"}`}></span>
+          )}
         </div>
         <div className="mt-2 flex items-baseline gap-1.5">
           <span className={`font-mono text-3xl font-bold ${audit.overallScore >= 70 ? "text-tertiary-container" : "text-error"}`}>

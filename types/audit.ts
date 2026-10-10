@@ -53,13 +53,24 @@ export interface RepoOverview {
 
 export type FindingSeverity = "critical" | "warning" | "optimization";
 
+export interface FindingEvidence {
+  path: string;
+  startLine?: number;
+  endLine?: number;
+  excerpt?: string;
+}
+
 export interface AuditFinding {
   id: string;
   severity: FindingSeverity;
   category: string;
   title: string;
   fileCitation: string;
+  startLine?: number;
+  endLine?: number;
+  evidence?: FindingEvidence[];
   explanation: string;
+  reasoning?: string;
   remediation: string;
   codeSnippet?: string;
   roleRelevance?: "critical" | "high" | "medium";
@@ -94,11 +105,21 @@ export interface AuditRequest {
   customRole?: TargetRole;
 }
 
+export interface ScoreBreakdown {
+  score: number;
+  grade: "A" | "B" | "C" | "D" | "F";
+  criticalDeductions: number;
+  warningDeductions: number;
+  coverageAdjustment: number;
+  factors: string[];
+}
+
 export interface AuditResponse {
   repoSummary: RepoOverview;
   companyProfile: CompanyProfile;
   targetRole?: TargetRole;
   overallScore: number;
+  scoreBreakdown?: ScoreBreakdown;
   findings: AuditFinding[];
   architectureComparison: ArchitectureComparison;
   stressTestScript: StressTestScript;

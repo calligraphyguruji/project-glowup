@@ -1,25 +1,13 @@
 import { RepoFile, RepoOverview } from "@/types/audit";
 
 const GITHUB_REPO_REGEX = /^https:\/\/github\.com\/([a-zA-Z0-9_.-]+)\/([a-zA-Z0-9_.-]+)\/?$/;
-const MAX_FILES = parseInt(process.env.MAX_FILES_PER_AUDIT || "10", 10);
+const MAX_FILES = parseInt(process.env.MAX_FILES_PER_AUDIT || "15", 10);
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE_BYTES || "51200", 10); // 50 KB
 
-const IGNORED_EXTENSIONS = new Set([
-  "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "pdf", "mp4", "mp3",
-  "zip", "tar", "gz", "rar", "7z", "woff", "woff2", "ttf", "eot",
-  "exe", "dll", "so", "dylib", "bin", "iso", "pyc", "class"
-]);
-
-const IGNORED_PATHS = [
-  "node_modules/", "vendor/", "venv/", ".venv/", "__pycache__/",
-  ".git/", "dist/", "build/", ".next/", "out/", "coverage/",
-  "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Cargo.lock"
-];
-
-// Fallback probe matrix when GitHub API (60 req/hr) rate limits campus IP
 const PROBE_FALLBACK_PATHS = [
   "package.json",
   "requirements.txt",
+  "pyproject.toml",
   "prisma/schema.prisma",
   "schema.prisma",
   "models.py",
@@ -33,6 +21,7 @@ const PROBE_FALLBACK_PATHS = [
   "src/app.js",
   "index.js",
   "src/index.ts",
+  "main.py",
   "routes/index.js",
   "src/routes/index.ts",
   "routes/api.js",
@@ -63,25 +52,52 @@ export function validateGithubUrl(url: string): { owner: string; repo: string } 
   return { owner, repo };
 }
 
+const IGNORED_EXTENSIONS = new Set([
+  "png", "jpg", "jpeg", "gif", "svg", "ico", "webp", "pdf", "mp4", "mp3",
+  "zip", "tar", "gz", "rar", "7z", "woff", "woff2", "ttf", "eot",
+  "exe", "dll", "so", "dylib", "bin", "iso", "pyc", "class",
+  "md", "markdown", "rst", "txt"
+]);
+
+const IGNORED_PATHS = [
+  "node_modules/", "vendor/", "venv/", ".venv/", "__pycache__/",
+  ".git/", "dist/", "build/", ".next/", "out/", "coverage/",
+  "package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Cargo.lock",
+  ".github/", ".vscode/", ".idea/", "site/", "public/assets/",
+  "scripts/tests/", "test/fixtures/", "tests/fixtures/", "test_code_blocks/"
+];
+
 function scoreFilePath(path: string): number {
   const lower = path.toLowerCase();
 
+  // Deprioritize documentation tutorials, tests fixtures, benchmarks and documentation source
+  const isDocOrExample = lower.startsWith("docs/") || lower.startsWith("docs_src/") || lower.startsWith("examples/") || lower.startsWith("benchmarks/");
+  const docPenalty = isDocOrExample ? -40 : 0;
+
   // Top tier: Schemas, Data Models, Migrations
-  if (lower.match(/(schema\.prisma|schema\.sql|\/models\/|\/entities\/|migration)/)) return 100;
+  if (lower.match(/(schema\.prisma|schema\.sql|\/models\/|\/entities\/|migration)/)) return 100 + docPenalty;
 
   // Manifests & Dependency Definitions
-  if (lower.match(/(package\.json|requirements\.txt|pom\.xml|cargo\.toml|go\.mod)/)) return 95;
+  if (lower.match(/(package\.json|requirements\.txt|pyproject\.toml|pom\.xml|cargo\.toml|go\.mod)/)) return 95;
 
-  // Server Entrypoints & API Routes
-  if (lower.match(/(server\.(ts|js)|app\.(ts|js)|index\.(ts|js)|main\.py|\/routes\/|\/api\/)/)) return 90;
+  // Server Entrypoints & API Routes (root level or src level favored)
+  if (lower.match(/^(?:src\/|app\/|lib\/)?(?:server|app|index|main)\.(ts|js|py)$/)) return 92;
+  if (lower.match(/(\/routes\/|\/api\/|\/controllers\/|\/handlers\/|\/services\/)/)) return 85 + docPenalty;
 
-  // Business Logic, Controllers, Services
-  if (lower.match(/(\/controllers\/|\/services\/|\/handlers\/|\/middleware\/)/)) return 80;
+  // Core application source code (.py, .ts, .js, .go, .rs, .java)
+  const isCode = lower.match(/\.(ts|js|jsx|tsx|py|go|rs|java|cpp|c|rb|php)$/);
+  if (isCode) {
+    if (lower.match(/(\/middleware\/|\/auth\/|\/lib\/|\/src\/|\/core\/|\/pkg\/)/)) return 80 + docPenalty;
+    return 70 + docPenalty;
+  }
 
   // Infrastructure & Configuration
   if (lower.match(/(docker-compose|dockerfile|\.env\.example)/)) return 60;
 
-  return 30;
+  // Test suites
+  if (lower.match(/(\/test\/|\/tests\/|__tests__|spec\.)/)) return 50;
+
+  return 10 + docPenalty;
 }
 
 function shouldIgnorePath(path: string): boolean {
@@ -90,6 +106,9 @@ function shouldIgnorePath(path: string): boolean {
   }
   const ext = path.split(".").pop()?.toLowerCase();
   if (ext && IGNORED_EXTENSIONS.has(ext)) return true;
+  // Ignore dotfiles and meta licenses
+  const base = path.split("/").pop()?.toLowerCase() || "";
+  if (base.startsWith(".") || base === "license" || base === "citation.cff") return true;
   return false;
 }
 

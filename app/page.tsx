@@ -25,6 +25,7 @@ export default function Home() {
   }) => {
     setIsLoading(true);
     setErrorMessage(null);
+    setAuditData(null); // Prevent stale state leakage between consecutive repository audits
 
     try {
       const res = await fetch("/api/audit", {

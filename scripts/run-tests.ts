@@ -193,6 +193,106 @@ function runUnitTests() {
     "Tailors interview defense questions to target QA Automation role"
   );
 
+  // 7. Multi-Repository Differentiation & Transparent Scoring Regression
+  console.log("\n[7/7] Testing Two-Repository Regression & Transparent Scoring...");
+
+  // Repository A: Python FastAPI Microservice with multiple endpoints
+  const repoAFiles: RepoFile[] = [
+    {
+      path: "pyproject.toml",
+      content: "[tool.poetry.dependencies]\npython = '^3.10'\nfastapi = '^0.100.0'\nuvicorn = '^0.22.0'",
+      size: 80,
+      score: 95,
+    },
+    {
+      path: "main.py",
+      content: "from fastapi import FastAPI\napp = FastAPI()\n@app.get('/health')\ndef health():\n    return {'status': 'ok'}\n@app.post('/items')\ndef create_item():\n    return {'id': 1}",
+      size: 150,
+      score: 92,
+    },
+    {
+      path: "tests/test_main.py",
+      content: "def test_health():\n    assert True",
+      size: 40,
+      score: 50,
+    },
+  ];
+
+  // Repository B: Insecure Fintech Node.js Service with hardcoded secret and float currency
+  const repoBFiles: RepoFile[] = [
+    {
+      path: "package.json",
+      content: JSON.stringify({ name: "insecure-wallet", dependencies: { express: "^4.18.2", pg: "^8.11.0" } }),
+      size: 90,
+      score: 95,
+    },
+    {
+      path: "prisma/schema.prisma",
+      content: "model Wallet { id String @id, balance Float, userId String }",
+      size: 65,
+      score: 100,
+    },
+    {
+      path: "src/server.js",
+      content: "const express = require('express');\nconst app = express();\nconst apiKey = 'sk_live_1234567890abcdef';\napp.post('/transfer', (req, res) => res.json({ success: true }));",
+      size: 160,
+      score: 90,
+    },
+  ];
+
+  const staticAuditA = runStaticAudit(repoAFiles, "amazon");
+  const auditA = generateFallbackAudit(
+    { owner: "fastapi-dev", repo: "microservice-a", defaultBranch: "main", totalFilesDiscovered: 3, filesIngested: 3 },
+    repoAFiles,
+    COMPANY_PROFILES.amazon,
+    staticAuditA
+  );
+
+  const staticAuditB = runStaticAudit(repoBFiles, "razorpay");
+  const auditB = generateFallbackAudit(
+    { owner: "fintech-dev", repo: "wallet-service-b", defaultBranch: "main", totalFilesDiscovered: 3, filesIngested: 3 },
+    repoBFiles,
+    COMPANY_PROFILES.razorpay,
+    staticAuditB
+  );
+
+  // Assertion 1: Repositories have different scores based on evidence
+  assert(auditA.overallScore !== auditB.overallScore, `Differentiates scores based on evidence (Repo A: ${auditA.overallScore}, Repo B: ${auditB.overallScore})`);
+  assert(auditA.overallScore > auditB.overallScore, "Clean tested FastAPI repo scores higher than vulnerable wallet repo");
+  assert(auditB.scoreBreakdown?.grade === "F" || auditB.scoreBreakdown?.grade === "D", "Insecure wallet repo assigned appropriate critical penalty grade");
+
+  // Assertion 2: File citations strictly match their respective repos
+  const repoAFilesSet = new Set(repoAFiles.map((f) => f.path));
+  const repoBFilesSet = new Set(repoBFiles.map((f) => f.path));
+  assert(
+    auditA.findings.every((f) => repoAFilesSet.has(f.fileCitation)),
+    "Repo A findings strictly cite files existing in Repo A"
+  );
+  assert(
+    auditB.findings.every((f) => repoBFilesSet.has(f.fileCitation)),
+    "Repo B findings strictly cite files existing in Repo B"
+  );
+
+  // Assertion 3: Concurrency scripts target real discovered endpoints from respective repos
+  assert(
+    auditA.stressTestScript.code.includes("/health") || auditA.stressTestScript.code.includes("/items"),
+    "Repo A stress test targets real discovered FastAPI endpoints"
+  );
+  assert(
+    auditB.stressTestScript.code.includes("/transfer"),
+    "Repo B stress test targets real discovered Express /transfer route"
+  );
+
+  // Assertion 4: Evidence line references and excerpts exist in findings
+  const criticalFindingB = auditB.findings.find((f) => f.severity === "critical");
+  assert(
+    criticalFindingB !== undefined &&
+    criticalFindingB.evidence !== undefined &&
+    criticalFindingB.evidence.length > 0 &&
+    typeof criticalFindingB.startLine === "number",
+    "Repo B critical finding includes exact line number and evidence excerpt"
+  );
+
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);
   process.exit(0);

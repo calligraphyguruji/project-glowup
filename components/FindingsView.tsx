@@ -126,6 +126,28 @@ export function FindingsView({ findings }: FindingsViewProps) {
 
                 {isExpanded && (
                   <div className="pt-2 border-t border-white/5 flex flex-col gap-2.5 mt-1 font-sans text-xs">
+                    {/* Evidence & Line Reference */}
+                    {finding.evidence && finding.evidence.length > 0 && (
+                      <div className="p-2.5 rounded bg-surface-container-high font-mono text-[11px] flex flex-col gap-1 border border-white/5">
+                        <span className="text-[10px] text-primary-container uppercase font-bold tracking-wider">
+                          Inspected File Evidence {finding.startLine ? `(Line ${finding.startLine}${finding.endLine && finding.endLine !== finding.startLine ? `-${finding.endLine}` : ""})` : ""}
+                        </span>
+                        <div className="bg-surface-container-lowest p-2 rounded text-slate-300 overflow-x-auto">
+                          <code>{finding.evidence[0].excerpt || finding.fileCitation}</code>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Architectural Reasoning */}
+                    {finding.reasoning && (
+                      <div className="p-2.5 rounded bg-surface-container-low flex flex-col gap-1">
+                        <span className="font-mono text-[10px] text-secondary uppercase font-bold tracking-wider">
+                          Root Cause Reasoning
+                        </span>
+                        <p className="text-slate-300 leading-relaxed font-sans">{finding.reasoning}</p>
+                      </div>
+                    )}
+
                     {/* Disqualification Reason */}
                     <div className="p-2.5 rounded bg-surface-container-low flex flex-col gap-1">
                       <span className="font-mono text-[10px] text-error font-bold uppercase tracking-wider flex items-center gap-1">
