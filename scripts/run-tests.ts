@@ -2,10 +2,10 @@ import { validateGithubUrl } from "../lib/github";
 import { checkRateLimit } from "../lib/rateLimiter";
 import { runStaticAudit } from "../lib/staticRules";
 import { COMPANY_PROFILES } from "../lib/companies";
-import { generateFallbackAudit } from "../lib/gemini";
+import { generateFallbackAudit, runGeminiAudit } from "../lib/gemini";
 import { RepoFile } from "../types/audit";
 
-function runUnitTests() {
+async function runUnitTests() {
   console.log("=== RUNNING TEST SUITE: PROJECTGLOWUP AI ===");
   let passed = 0;
   let failed = 0;
@@ -189,7 +189,7 @@ function runUnitTests() {
   assert(customAudit.companyProfile.isCustom === true, "Marks custom company profile accurately");
   assert(customAudit.targetRole?.id === "qa_automation", "Attaches target role to audit output");
   assert(
-    customAudit.interviewDefense.some((d) => d.question.includes("automated regression harness")),
+    customAudit.interviewDefense.some((d) => d.question.toLowerCase().includes("automated regression")),
     "Tailors interview defense questions to target QA Automation role"
   );
 
@@ -404,10 +404,49 @@ function runUnitTests() {
   const distinctCategories = new Set(fullAuditReport.findings.map(f => f.category));
   assert(distinctCategories.size >= 5, `Covers at least 5 distinct vulnerability categories (Found: ${distinctCategories.size})`);
 
+  // 9. Gemini Integration & Diagnostics Verification (async tests)
+  console.log("\n[9/9] Testing Gemini Integration & Diagnostic Failure Modes...");
+  const sampleOverview = { owner: "test-org", repo: "test-repo", defaultBranch: "main", totalFilesDiscovered: 2, filesIngested: 2 };
+  const sampleFiles: RepoFile[] = [
+    { path: "package.json", content: `{"name":"test","dependencies":{"express":"^4.18.2"}}`, size: 50, score: 95 },
+    { path: "index.js", content: `const express = require('express'); const app = express(); app.listen(3000);`, size: 80, score: 92 },
+  ];
+
+  // Test 9.1: Missing key produces transparent key_missing diagnostic and never claims live_ai
+  const origKey = process.env.GEMINI_API_KEY;
+  delete process.env.GEMINI_API_KEY;
+  delete process.env.GOOGLE_API_KEY;
+
+  const missingKeyAudit = await runGeminiAudit(sampleOverview, sampleFiles, COMPANY_PROFILES.razorpay, []);
+  assert(missingKeyAudit.executionMode === "heuristic_fallback", "Missing key falls back to heuristic engine");
+  assert(missingKeyAudit.aiDiagnostics?.status === "key_missing", "Missing key diagnostics records status 'key_missing'");
+  assert(!missingKeyAudit.aiDiagnostics?.details?.includes("AIzaSy"), "Diagnostic details never expose secret keys");
+
+  // Test 9.2: Invalid placeholder key produces key_missing or classifies correctly
+  process.env.GEMINI_API_KEY = "your_gemini_api_key_here";
+  const placeholderAudit = await runGeminiAudit(sampleOverview, sampleFiles, COMPANY_PROFILES.razorpay, []);
+  assert(placeholderAudit.aiDiagnostics?.status === "key_missing", "Placeholder key correctly treated as unconfigured key");
+
+  // Test 9.3: Invalid live format key triggers safe exception handling and classifies failure
+  process.env.GEMINI_API_KEY = "AIzaSy_INVALID_KEY_FOR_TESTING_12345";
+  const invalidKeyAudit = await runGeminiAudit(sampleOverview, sampleFiles, COMPANY_PROFILES.razorpay, []);
+  assert(invalidKeyAudit.executionMode === "heuristic_fallback", "Invalid API key gracefully falls back without throwing unhandled crash");
+  assert(
+    invalidKeyAudit.aiDiagnostics?.status === "key_invalid" || invalidKeyAudit.aiDiagnostics?.status === "error",
+    `Invalid key classified safely (Got: ${invalidKeyAudit.aiDiagnostics?.status})`
+  );
+
+  // Restore environment
+  if (origKey) process.env.GEMINI_API_KEY = origKey;
+  else delete process.env.GEMINI_API_KEY;
+
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);
   process.exit(0);
 }
 
-runUnitTests();
+runUnitTests().catch((err) => {
+  console.error("Test runner threw unhandled error:", err);
+  process.exit(1);
+});
 

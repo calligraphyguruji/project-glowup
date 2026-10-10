@@ -77,19 +77,39 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
         </span>
       </div>
 
-      {/* Metric 4: Benchmark Target */}
+      {/* Metric 4: Benchmark Target & AI Diagnostic Status */}
       <div className="p-3.5 rounded-xl bg-[#101114] border border-[#292A31] flex flex-col justify-between shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">DOMAIN SPEC</span>
-          <Server className="w-4 h-4 text-[#FF666B]" />
+          <span className="font-mono text-[10px] text-[#A3A4AD] uppercase tracking-wider font-semibold">AI INTELLIGENCE</span>
+          {audit.executionMode === "live_ai" ? (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-[#45D6A0]/15 text-[#45D6A0] border border-[#45D6A0]/30">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#45D6A0] animate-pulse" />
+              LIVE GEMINI
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-medium bg-[#17181D] text-[#A3A4AD] border border-[#292A31]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#F5BD50]" />
+              HEURISTIC ENGINE
+            </span>
+          )}
         </div>
         <div className="mt-2.5">
           <span className="font-mono text-xl font-bold text-[#FF666B] truncate block">
             {audit.companyProfile.name}
           </span>
         </div>
-        <span className="font-mono text-[10px] text-[#747680] truncate mt-1.5">
-          {audit.companyProfile.domain}
+        <span className="font-mono text-[10px] text-[#747680] truncate mt-1.5" title={audit.aiDiagnostics?.details}>
+          {audit.aiDiagnostics ? (
+            audit.aiDiagnostics.status === "configured_and_succeeded"
+              ? `Gemini ${audit.aiDiagnostics.model} verified`
+              : audit.aiDiagnostics.status === "key_missing"
+              ? "Gemini key not configured (heuristics active)"
+              : audit.aiDiagnostics.status === "key_invalid"
+              ? "Gemini key rejected (401)"
+              : audit.aiDiagnostics.details?.slice(0, 40)
+          ) : (
+            audit.companyProfile.domain
+          )}
         </span>
       </div>
     </div>

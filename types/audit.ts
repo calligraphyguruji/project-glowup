@@ -126,6 +126,13 @@ export interface AuditResponse {
   interviewDefense: InterviewDefenseItem[];
   generatedAt: string;
   executionMode: "live_ai" | "heuristic_fallback" | "cached_demo";
+  aiDiagnostics?: {
+    status: "configured_and_succeeded" | "key_missing" | "key_invalid" | "quota_exhausted" | "rate_limited" | "timeout" | "malformed_response" | "error";
+    model: string;
+    details?: string;
+    timestamp: string;
+    durationMs?: number;
+  };
   detectedStack?: {
     type: string;
     frameworks: string[];
