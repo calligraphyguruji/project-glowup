@@ -26,13 +26,15 @@
 - [x] Static rule engine detecting float currency, missing idempotency, unindexed coordinates, missing FK indexes, and secrets (`lib/staticRules.ts`).
 - [x] Structured JSON audit synthesis with Google Gemini Flash API (`lib/gemini.ts`).
 - [x] Client-side Before/After Mermaid.js system diff visualizer (`components/MermaidViewer.tsx`).
+- [x] Custom company profile creation, editing, deletion, and local storage persistence (`components/AuditForm.tsx`).
+- [x] Target role selection (SDE Intern, Backend, Frontend, Full-Stack, DevOps, QA Automation) and custom role creation (`lib/roles.ts`).
 - [x] Runnable concurrency test harness sandbox with 1-click clipboard copy (`components/TestScriptSandbox.tsx`).
-- [x] Technical interview defense drill generator (`components/InterviewDefense.tsx`).
+- [x] Technical interview defense drill generator calibrated to company & target role (`components/InterviewDefense.tsx`).
 - [x] Simulated pipeline terminal indicator (`components/ProgressTerminal.tsx`).
 - [x] 1-click live demo presets across all 4 target companies (`components/AuditForm.tsx`).
 - [x] In-memory sliding-window IP rate limiter (`lib/rateLimiter.ts`).
 - [x] SSRF, URL validation, and untrusted code delimiter boundaries.
-- [x] End-to-end automated unit test suite passing 13/13 tests (`scripts/run-tests.ts`).
+- [x] End-to-end automated unit test suite passing 21/21 tests (`scripts/run-tests.ts`).
 
 ### Ready for Demo & Deployment
 - [x] Verified zero TypeScript compilation errors (`npm run type-check`).

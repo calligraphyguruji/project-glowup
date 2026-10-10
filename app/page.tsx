@@ -16,7 +16,13 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleAudit = async (repoUrl: string, companyId: CompanyId) => {
+  const handleAudit = async (params: {
+    repoUrl: string;
+    companyId?: CompanyId;
+    customCompany?: import("@/types/audit").CompanyProfile;
+    roleId?: string;
+    customRole?: import("@/types/audit").TargetRole;
+  }) => {
     setIsLoading(true);
     setErrorMessage(null);
 
@@ -24,7 +30,7 @@ export default function Home() {
       const res = await fetch("/api/audit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repoUrl, companyId }),
+        body: JSON.stringify(params),
       });
 
       const data = await res.json();
@@ -128,9 +134,15 @@ export default function Home() {
                     <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-primary-container/20 text-primary-container border border-primary-container/30 uppercase font-semibold">
                       {auditData.companyProfile.name}
                     </span>
+                    {auditData.targetRole && (
+                      <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-secondary-container/20 text-secondary-container border border-secondary-container/30 uppercase font-semibold">
+                        {auditData.targetRole.title} ({auditData.targetRole.experienceLevel})
+                      </span>
+                    )}
                   </div>
                   <p className="font-sans text-xs text-slate-400 mt-1">
-                    Audited {auditData.repoSummary.filesIngested} key architectural files against {auditData.companyProfile.domain} invariants.
+                    Audited {auditData.repoSummary.filesIngested} key architectural files against {auditData.companyProfile.domain} invariants
+                    {auditData.targetRole ? ` calibrated for ${auditData.targetRole.title}` : ""}.
                   </p>
                 </div>
 

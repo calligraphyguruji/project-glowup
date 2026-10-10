@@ -1,4 +1,4 @@
-export type CompanyId = "razorpay" | "swiggy" | "zerodha" | "amazon";
+export type CompanyId = string;
 
 export interface CompanyProfile {
   id: CompanyId;
@@ -7,6 +7,30 @@ export interface CompanyProfile {
   tagline: string;
   keyConcerns: string[];
   sampleAntiPatterns: string[];
+  isCustom?: boolean;
+  website?: string;
+}
+
+export type ExperienceLevel =
+  | "internship"
+  | "entry_level"
+  | "junior"
+  | "mid_level"
+  | "senior"
+  | "custom";
+
+export interface TargetRole {
+  id: string;
+  title: string;
+  experienceLevel: ExperienceLevel;
+  focusAreas: string[];
+  description?: string;
+  isCustom?: boolean;
+}
+
+export interface AnalysisProfile {
+  company: CompanyProfile;
+  role: TargetRole;
 }
 
 export interface RepoFile {
@@ -38,6 +62,7 @@ export interface AuditFinding {
   explanation: string;
   remediation: string;
   codeSnippet?: string;
+  roleRelevance?: "critical" | "high" | "medium";
 }
 
 export interface ArchitectureComparison {
@@ -63,12 +88,16 @@ export interface InterviewDefenseItem {
 
 export interface AuditRequest {
   repoUrl: string;
-  companyId: CompanyId;
+  companyId?: string;
+  customCompany?: CompanyProfile;
+  roleId?: string;
+  customRole?: TargetRole;
 }
 
 export interface AuditResponse {
   repoSummary: RepoOverview;
   companyProfile: CompanyProfile;
+  targetRole?: TargetRole;
   overallScore: number;
   findings: AuditFinding[];
   architectureComparison: ArchitectureComparison;

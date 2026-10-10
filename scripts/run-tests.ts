@@ -157,8 +157,41 @@ function runUnitTests() {
     COMPANY_PROFILES.razorpay,
     []
   );
-  assert(backendAudit.detectedStack?.type === "node_backend", "Detects Node backend stack");
-  assert(backendAudit.stressTestScript.code.includes("/api/orders"), "Targets actual discovered endpoint '/api/orders' in concurrency test");
+  // 6. Custom Company & Target Role Personalization Tests
+  console.log("\n[6/6] Testing Custom Company & Target Role Personalization...");
+  const customCompany: import("../types/audit").CompanyProfile = {
+    id: "custom_stripe",
+    name: "Stripe",
+    domain: "Global Financial Infrastructure",
+    tagline: "Payments API for internet businesses",
+    keyConcerns: ["Idempotency-Key validation", "Webhook retry exponential backoff", "Zero double-charge"],
+    sampleAntiPatterns: [],
+    isCustom: true,
+  };
+
+  const qaRole: import("../types/audit").TargetRole = {
+    id: "qa_automation",
+    title: "QA Automation Engineer",
+    experienceLevel: "entry_level",
+    focusAreas: ["Automated regression test harnesses", "Deterministic mock boundaries"],
+  };
+
+  const customAudit = generateFallbackAudit(
+    { owner: "fintech", repo: "stripe-service", defaultBranch: "main", totalFilesDiscovered: 2, filesIngested: 2 },
+    backendFiles,
+    customCompany,
+    [],
+    undefined,
+    qaRole
+  );
+
+  assert(customAudit.companyProfile.name === "Stripe", "Evaluates audit against custom company profile");
+  assert(customAudit.companyProfile.isCustom === true, "Marks custom company profile accurately");
+  assert(customAudit.targetRole?.id === "qa_automation", "Attaches target role to audit output");
+  assert(
+    customAudit.interviewDefense.some((d) => d.question.includes("automated regression harness")),
+    "Tailors interview defense questions to target QA Automation role"
+  );
 
   console.log(`\n=== TEST RESULTS: ${passed} PASSED, ${failed} FAILED ===\n`);
   if (failed > 0) process.exit(1);

@@ -75,9 +75,14 @@ export function MetricsOverview({ audit }: MetricsOverviewProps) {
           <Server className="w-3.5 h-3.5 text-tertiary-container" />
         </div>
         <div className="mt-2">
-          <span className="font-mono text-lg font-bold text-primary-container truncate block">
+          <span className="font-mono text-base font-bold text-primary-container truncate block">
             {audit.companyProfile.name}
           </span>
+          {audit.targetRole && (
+            <span className="font-mono text-[10px] text-secondary-container truncate block mt-0.5">
+              {audit.targetRole.title}
+            </span>
+          )}
         </div>
         <span className="font-mono text-[10px] text-slate-400 truncate mt-1">
           {audit.companyProfile.domain}

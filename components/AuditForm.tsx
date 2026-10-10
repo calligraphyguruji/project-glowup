@@ -1,19 +1,113 @@
 "use client";
 
-import React, { useState } from "react";
-import { AlertCircle, ArrowRight, ShieldCheck, Terminal, Cpu } from "lucide-react";
-import { CompanyId } from "@/types/audit";
+import React, { useState, useEffect } from "react";
+import {
+  AlertCircle,
+  Cpu,
+  Plus,
+  Trash2,
+  Edit2,
+  Check,
+  X,
+  Briefcase,
+  Building,
+  Sparkles,
+} from "lucide-react";
+import { CompanyId, CompanyProfile, TargetRole, ExperienceLevel } from "@/types/audit";
 import { COMPANY_PROFILES } from "@/lib/companies";
+import { PREDEFINED_ROLES } from "@/lib/roles";
+
+const STORAGE_KEY_CUSTOM_COMPANIES = "projectglowup_custom_companies_v1";
+const STORAGE_KEY_CUSTOM_ROLES = "projectglowup_custom_roles_v1";
 
 interface AuditFormProps {
-  onAudit: (repoUrl: string, companyId: CompanyId) => void;
+  onAudit: (params: {
+    repoUrl: string;
+    companyId?: CompanyId;
+    customCompany?: CompanyProfile;
+    roleId?: string;
+    customRole?: TargetRole;
+  }) => void;
   isLoading: boolean;
 }
 
 export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
   const [repoUrl, setRepoUrl] = useState("");
-  const [companyId, setCompanyId] = useState<CompanyId>("razorpay");
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("razorpay");
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("sde_intern");
   const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Custom profiles state (stored in localStorage)
+  const [customCompanies, setCustomCompanies] = useState<CompanyProfile[]>([]);
+  const [customRoles, setCustomRoles] = useState<TargetRole[]>([]);
+
+  // Modals / Editors state
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+
+  // Company form inputs
+  const [compName, setCompName] = useState("");
+  const [compDomain, setCompDomain] = useState("");
+  const [compTagline, setCompTagline] = useState("");
+  const [compConcerns, setCompConcerns] = useState("");
+  const [compWebsite, setCompWebsite] = useState("");
+  const [editingCompId, setEditingCompId] = useState<string | null>(null);
+
+  // Role form inputs
+  const [roleTitle, setRoleTitle] = useState("");
+  const [roleLevel, setRoleLevel] = useState<ExperienceLevel>("entry_level");
+  const [roleFocusAreas, setRoleFocusAreas] = useState("");
+  const [roleDescription, setRoleDescription] = useState("");
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+
+  // Load custom profiles from localStorage safely on mount
+  useEffect(() => {
+    try {
+      const savedComps = localStorage.getItem(STORAGE_KEY_CUSTOM_COMPANIES);
+      if (savedComps) {
+        const parsed = JSON.parse(savedComps);
+        if (Array.isArray(parsed)) setCustomCompanies(parsed);
+      }
+      const savedRoles = localStorage.getItem(STORAGE_KEY_CUSTOM_ROLES);
+      if (savedRoles) {
+        const parsed = JSON.parse(savedRoles);
+        if (Array.isArray(parsed)) setCustomRoles(parsed);
+      }
+    } catch (e) {
+      console.warn("Could not load custom profiles from localStorage:", e);
+    }
+  }, []);
+
+  // Save changes to localStorage
+  const saveCustomCompaniesToStorage = (updated: CompanyProfile[]) => {
+    setCustomCompanies(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_COMPANIES, JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Failed saving companies to localStorage:", e);
+    }
+  };
+
+  const saveCustomRolesToStorage = (updated: TargetRole[]) => {
+    setCustomRoles(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_CUSTOM_ROLES, JSON.stringify(updated));
+    } catch (e) {
+      console.warn("Failed saving roles to localStorage:", e);
+    }
+  };
+
+  // Find active profiles
+  const allCompanies: CompanyProfile[] = [
+    ...Object.values(COMPANY_PROFILES),
+    ...customCompanies,
+  ];
+  const activeCompany =
+    allCompanies.find((c) => c.id === selectedCompanyId) || COMPANY_PROFILES.razorpay;
+
+  const allRoles: TargetRole[] = [...PREDEFINED_ROLES, ...customRoles];
+  const activeRole =
+    allRoles.find((r) => r.id === selectedRoleId) || PREDEFINED_ROLES[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,19 +121,152 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
       return;
     }
     setUrlError(null);
-    onAudit(trimmed, companyId);
+
+    const isCustomComp = activeCompany.isCustom;
+    const isCustomRol = activeRole.isCustom;
+
+    onAudit({
+      repoUrl: trimmed,
+      companyId: isCustomComp ? undefined : activeCompany.id,
+      customCompany: isCustomComp ? activeCompany : undefined,
+      roleId: isCustomRol ? undefined : activeRole.id,
+      customRole: isCustomRol ? activeRole : undefined,
+    });
   };
 
   const loadPreset = (presetUrl: string, presetCompany: CompanyId) => {
     setRepoUrl(presetUrl);
-    setCompanyId(presetCompany);
+    setSelectedCompanyId(presetCompany);
+    setSelectedRoleId("sde_intern");
     setUrlError(null);
-    onAudit(presetUrl, presetCompany);
+    onAudit({
+      repoUrl: presetUrl,
+      companyId: presetCompany,
+      roleId: "sde_intern",
+    });
+  };
+
+  // Save / Update Custom Company
+  const handleSaveCompany = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!compName.trim()) return;
+
+    const id = editingCompId || `custom_${Date.now()}`;
+    const concernsArray = compConcerns
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const newCompany: CompanyProfile = {
+      id,
+      name: compName.trim(),
+      domain: compDomain.trim() || "Technology / Platform",
+      tagline: compTagline.trim() || "High Performance Architecture",
+      keyConcerns: concernsArray.length > 0 ? concernsArray : ["Production reliability", "Concurrency safety"],
+      sampleAntiPatterns: [],
+      isCustom: true,
+      website: compWebsite.trim() || undefined,
+    };
+
+    let updated: CompanyProfile[];
+    if (editingCompId) {
+      updated = customCompanies.map((c) => (c.id === editingCompId ? newCompany : c));
+    } else {
+      updated = [...customCompanies, newCompany];
+    }
+
+    saveCustomCompaniesToStorage(updated);
+    setSelectedCompanyId(id);
+    setShowCompanyModal(false);
+    resetCompanyForm();
+  };
+
+  const resetCompanyForm = () => {
+    setCompName("");
+    setCompDomain("");
+    setCompTagline("");
+    setCompConcerns("");
+    setCompWebsite("");
+    setEditingCompId(null);
+  };
+
+  const handleDeleteCompany = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Delete this custom company profile?")) {
+      const updated = customCompanies.filter((c) => c.id !== id);
+      saveCustomCompaniesToStorage(updated);
+      if (selectedCompanyId === id) {
+        setSelectedCompanyId("razorpay");
+      }
+    }
+  };
+
+  const handleEditCompany = (c: CompanyProfile, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCompName(c.name);
+    setCompDomain(c.domain);
+    setCompTagline(c.tagline);
+    setCompConcerns(c.keyConcerns.join(", "));
+    setCompWebsite(c.website || "");
+    setEditingCompId(c.id);
+    setShowCompanyModal(true);
+  };
+
+  // Save / Update Custom Role
+  const handleSaveRole = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!roleTitle.trim()) return;
+
+    const id = editingRoleId || `custom_role_${Date.now()}`;
+    const focusArray = roleFocusAreas
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const newRole: TargetRole = {
+      id,
+      title: roleTitle.trim(),
+      experienceLevel: roleLevel,
+      focusAreas: focusArray.length > 0 ? focusArray : ["Production engineering standards"],
+      description: roleDescription.trim() || undefined,
+      isCustom: true,
+    };
+
+    let updated: TargetRole[];
+    if (editingRoleId) {
+      updated = customRoles.map((r) => (r.id === editingRoleId ? newRole : r));
+    } else {
+      updated = [...customRoles, newRole];
+    }
+
+    saveCustomRolesToStorage(updated);
+    setSelectedRoleId(id);
+    setShowRoleModal(false);
+    resetRoleForm();
+  };
+
+  const resetRoleForm = () => {
+    setRoleTitle("");
+    setRoleLevel("entry_level");
+    setRoleFocusAreas("");
+    setRoleDescription("");
+    setEditingRoleId(null);
+  };
+
+  const handleDeleteRole = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("Delete this custom target role?")) {
+      const updated = customRoles.filter((r) => r.id !== id);
+      saveCustomRolesToStorage(updated);
+      if (selectedRoleId === id) {
+        setSelectedRoleId("sde_intern");
+      }
+    }
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      {/* Double-Bezel Physical Ingest Chassis */}
+    <div className="flex flex-col gap-5">
+      {/* 1. Double-Bezel Physical Ingest Chassis */}
       <div className="p-1.5 rounded-xl bg-surface-variant/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] ring-1 ring-white/5">
         <form onSubmit={handleSubmit} className="rounded-lg bg-surface-container-lowest p-3 sm:p-4 flex flex-col gap-3 shadow-inner">
           <div className="flex items-center justify-between text-xs font-mono">
@@ -116,57 +343,400 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
         </form>
       </div>
 
-      {/* Target Rubric Matrix (4 Selectable Tiles) */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
-            SELECT TARGET INVARIANT MATRIX
-          </span>
-          <span className="text-[10px] font-mono text-slate-500 uppercase">CALIBRATED TO PRODUCTION RFCs</span>
+      {/* 2. Unified Target Profile Calibration Deck */}
+      <div className="p-3.5 rounded-xl bg-surface-container-lowest border border-white/5 shadow-sm space-y-4">
+        {/* Profile Header & Summary */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary-container" />
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+                AUDIT PROFILE &amp; EVALUATION CRITERIA
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Calibrate findings, concurrency testing, and technical interview questions to company &amp; role.
+            </p>
+          </div>
+
+          {/* Active Profile Telemetry Badge */}
+          <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-surface-container-low border border-white/10 font-mono text-[11px]">
+            <span className="text-primary-container font-semibold">{activeCompany.name}</span>
+            <span className="text-slate-600">/</span>
+            <span className="text-secondary-container">{activeRole.title}</span>
+            <span className="text-slate-500 text-[10px] uppercase">({activeRole.experienceLevel})</span>
+          </div>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {(Object.keys(COMPANY_PROFILES) as CompanyId[]).map((cId, idx) => {
-            const comp = COMPANY_PROFILES[cId];
-            const isSelected = companyId === cId;
-            return (
+
+        {/* Controls: Target Role Selector & Custom Role Button */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Column A: Role & Level Selection */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Briefcase className="w-3.5 h-3.5 text-secondary-container" />
+                Target Role
+              </label>
               <button
-                key={cId}
                 type="button"
-                onClick={() => setCompanyId(cId)}
-                disabled={isLoading}
-                className={`p-1 rounded-xl transition-all text-left ${
-                  isSelected
-                    ? "bg-primary-container/20 ring-1 ring-primary-container/60 shadow-[0_0_12px_rgba(0,242,254,0.15)]"
-                    : "bg-surface-variant/20 hover:bg-surface-variant/40 border border-white/5"
-                }`}
+                onClick={() => {
+                  resetRoleForm();
+                  setShowRoleModal(true);
+                }}
+                className="text-[10px] font-mono text-primary-container hover:underline flex items-center gap-1"
               >
-                <div className="rounded-lg bg-surface-container-low p-3 flex flex-col justify-between h-full gap-2">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        isSelected
-                          ? "bg-primary-container shadow-[0_0_6px_rgba(0,242,254,0.8)]"
-                          : "bg-slate-600"
-                      }`}
-                    ></span>
-                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest">
-                      INVARIANT_0{idx + 1}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="font-mono text-sm font-semibold text-slate-100 truncate">
-                      {comp.name}
-                    </h3>
-                    <p className="font-sans text-[11px] text-slate-400 line-clamp-1 mt-0.5 leading-snug">
-                      {comp.domain}
-                    </p>
-                  </div>
-                </div>
+                <Plus className="w-3 h-3" /> Custom Role
               </button>
-            );
-          })}
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedRoleId}
+                onChange={(e) => setSelectedRoleId(e.target.value)}
+                disabled={isLoading}
+                className="flex-1 bg-surface-container-low px-3 py-2 rounded text-xs font-mono text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+              >
+                <optgroup label="Predefined Roles">
+                  {PREDEFINED_ROLES.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.title} ({r.experienceLevel})
+                    </option>
+                  ))}
+                </optgroup>
+                {customRoles.length > 0 && (
+                  <optgroup label="Custom Roles">
+                    {customRoles.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title} ({r.experienceLevel}) [Custom]
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              {activeRole.isCustom && (
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteRole(activeRole.id, e)}
+                  title="Delete Custom Role"
+                  className="p-2 rounded bg-surface-container-low hover:bg-error/20 text-slate-400 hover:text-error border border-white/10"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] font-mono text-slate-500 truncate">
+              Focus: {activeRole.focusAreas.slice(0, 2).join(" · ")}
+            </p>
+          </div>
+
+          {/* Column B: Company Profile Action & Custom Company Button */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-mono text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <Building className="w-3.5 h-3.5 text-tertiary-container" />
+                Company Invariant Standard
+              </label>
+              <button
+                type="button"
+                onClick={() => {
+                  resetCompanyForm();
+                  setShowCompanyModal(true);
+                }}
+                className="text-[10px] font-mono text-primary-container hover:underline flex items-center gap-1"
+              >
+                <Plus className="w-3 h-3" /> Custom Company
+              </button>
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedCompanyId}
+                onChange={(e) => setSelectedCompanyId(e.target.value)}
+                disabled={isLoading}
+                className="flex-1 bg-surface-container-low px-3 py-2 rounded text-xs font-mono text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-tertiary-container"
+              >
+                <optgroup label="Production Calibrated">
+                  {Object.values(COMPANY_PROFILES).map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} — {c.domain}
+                    </option>
+                  ))}
+                </optgroup>
+                {customCompanies.length > 0 && (
+                  <optgroup label="Custom Profiles">
+                    {customCompanies.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} — {c.domain} [Custom]
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+              </select>
+              {activeCompany.isCustom && (
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={(e) => handleEditCompany(activeCompany, e)}
+                    title="Edit Custom Company"
+                    className="p-2 rounded bg-surface-container-low hover:bg-surface-container text-slate-400 hover:text-primary-container border border-white/10"
+                  >
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleDeleteCompany(activeCompany.id, e)}
+                    title="Delete Custom Company"
+                    className="p-2 rounded bg-surface-container-low hover:bg-error/20 text-slate-400 hover:text-error border border-white/10"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="text-[10px] font-mono text-slate-500 truncate">
+              Concerns: {activeCompany.keyConcerns.slice(0, 2).join(" · ")}
+            </p>
+          </div>
+        </div>
+
+        {/* Quick Company Tiles (Built-in + Custom) */}
+        <div>
+          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-2">
+            SELECT INVARIANT PROFILE:
+          </span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {allCompanies.map((comp) => {
+              const isSelected = selectedCompanyId === comp.id;
+              return (
+                <button
+                  key={comp.id}
+                  type="button"
+                  onClick={() => setSelectedCompanyId(comp.id)}
+                  disabled={isLoading}
+                  className={`p-2.5 rounded-lg text-left transition-all relative border ${
+                    isSelected
+                      ? "bg-primary-container/15 border-primary-container/50 shadow-[0_0_10px_rgba(0,242,254,0.1)]"
+                      : "bg-surface-container-low/60 hover:bg-surface-container-low border-white/5"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isSelected ? "bg-primary-container shadow-[0_0_4px_rgba(0,242,254,0.8)]" : "bg-slate-600"
+                      }`}
+                    />
+                    {comp.isCustom ? (
+                      <span className="text-[9px] font-mono text-primary-container bg-primary-container/20 px-1 rounded">
+                        CUSTOM
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-mono text-slate-400 uppercase">CALIBRATED</span>
+                    )}
+                  </div>
+                  <div className="font-mono text-xs font-bold text-slate-100 truncate">{comp.name}</div>
+                  <div className="text-[10px] text-slate-400 truncate mt-0.5">{comp.domain}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {/* Modal: Create/Edit Custom Company */}
+      {showCompanyModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-surface-container-lowest border border-white/10 rounded-xl p-5 shadow-2xl font-mono text-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="font-bold text-sm text-slate-100 uppercase">
+                {editingCompId ? "Edit Company Profile" : "Create Custom Company Profile"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCompanyModal(false);
+                  resetCompanyForm();
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCompany} className="space-y-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Company Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={compName}
+                  onChange={(e) => setCompName(e.target.value)}
+                  placeholder="e.g. Stripe, OpenAI, MyStartup"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Industry / Domain</label>
+                <input
+                  type="text"
+                  value={compDomain}
+                  onChange={(e) => setCompDomain(e.target.value)}
+                  placeholder="e.g. Distributed Payments, Autonomous Robotics"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Tagline / Mission</label>
+                <input
+                  type="text"
+                  value={compTagline}
+                  onChange={(e) => setCompTagline(e.target.value)}
+                  placeholder="e.g. Financial infrastructure for the internet"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">
+                  Key Architectural Concerns (comma-separated)
+                </label>
+                <textarea
+                  rows={2}
+                  value={compConcerns}
+                  onChange={(e) => setCompConcerns(e.target.value)}
+                  placeholder="e.g. Idempotency guards, Zero packet loss, Sub-10ms P99 latency"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Website (optional)</label>
+                <input
+                  type="text"
+                  value={compWebsite}
+                  onChange={(e) => setCompWebsite(e.target.value)}
+                  placeholder="https://example.com"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-primary-container"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCompanyModal(false);
+                    resetCompanyForm();
+                  }}
+                  className="px-3 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded bg-primary-container hover:bg-[#3bf5ff] text-slate-950 font-bold"
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create/Edit Custom Target Role */}
+      {showRoleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-surface-container-lowest border border-white/10 rounded-xl p-5 shadow-2xl font-mono text-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2">
+              <span className="font-bold text-sm text-slate-100 uppercase">
+                {editingRoleId ? "Edit Target Role" : "Create Custom Target Role"}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRoleModal(false);
+                  resetRoleForm();
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveRole} className="space-y-3">
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Role Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={roleTitle}
+                  onChange={(e) => setRoleTitle(e.target.value)}
+                  placeholder="e.g. Distributed Systems Engineer, AI App Developer"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Seniority / Experience Level</label>
+                <select
+                  value={roleLevel}
+                  onChange={(e) => setRoleLevel(e.target.value as ExperienceLevel)}
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                >
+                  <option value="internship">Internship</option>
+                  <option value="entry_level">Entry Level (New Grad)</option>
+                  <option value="junior">Junior (1-2 YoE)</option>
+                  <option value="mid_level">Mid-Level (3-5 YoE)</option>
+                  <option value="senior">Senior (5+ YoE)</option>
+                  <option value="custom">Custom Experience</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">
+                  Focus Areas &amp; Invariants (comma-separated)
+                </label>
+                <textarea
+                  rows={2}
+                  value={roleFocusAreas}
+                  onChange={(e) => setRoleFocusAreas(e.target.value)}
+                  placeholder="e.g. Memory profiling, Event-driven streaming, Cache consistency"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-slate-400 mb-1">Description / Notes (optional)</label>
+                <textarea
+                  rows={2}
+                  value={roleDescription}
+                  onChange={(e) => setRoleDescription(e.target.value)}
+                  placeholder="e.g. Focuses on low-latency microservices and network safety"
+                  className="w-full bg-surface-container-low px-3 py-2 rounded text-slate-200 border border-white/10 focus:outline-none focus:ring-1 focus:ring-secondary-container"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRoleModal(false);
+                    resetRoleForm();
+                  }}
+                  className="px-3 py-1.5 rounded bg-surface-container-low hover:bg-surface-container text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-1.5 rounded bg-secondary-container hover:bg-[#ffb076] text-slate-950 font-bold"
+                >
+                  Save Role
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

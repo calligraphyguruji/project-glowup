@@ -46,14 +46,15 @@ export async function runGeminiAudit(
   overview: RepoOverview,
   files: RepoFile[],
   company: CompanyProfile,
-  staticFindings: AuditFinding[]
+  staticFindings: AuditFinding[],
+  targetRole?: import("@/types/audit").TargetRole
 ): Promise<AuditResponse> {
   const stack = detectRepositoryStack(files);
   const apiKey = process.env.GEMINI_API_KEY;
 
   // If no API key configured or fallback triggered, return dynamic repository-aware response
   if (!apiKey || apiKey === "your_gemini_api_key_here") {
-    return generateFallbackAudit(overview, files, company, staticFindings, stack);
+    return generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
   }
 
   try {
@@ -78,12 +79,20 @@ export async function runGeminiAudit(
 
     const prompt = `
 You are a Staff Software Engineer and Technical Interviewer at ${company.name} (${company.domain}).
-Analyze this student candidate's repository files against your company's production engineering standards.
+Analyze this candidate's repository files against your company's production engineering standards${targetRole ? ` and the specific expectations for the role: ${targetRole.title} (${targetRole.experienceLevel.toUpperCase()})` : ""}.
 
 TARGET COMPANY PROFILE:
 Name: ${company.name}
 Domain: ${company.domain}
 Key Architectural Concerns: ${company.keyConcerns.join(", ")}
+${company.website ? `Website: ${company.website}` : ""}
+
+${targetRole ? `TARGET ROLE PROFILE:
+Role: ${targetRole.title}
+Level: ${targetRole.experienceLevel}
+Focus Areas: ${targetRole.focusAreas.join(", ")}
+${targetRole.description ? `Role Description: ${targetRole.description}` : ""}
+Prioritize findings, recommendations, and interview drill questions relevant to this role and seniority level without fabricating unobserved flaws.` : ""}
 
 DETECTED REPOSITORY TECH STACK:
 Stack Type: ${stack.type}
@@ -101,9 +110,10 @@ TASK:
 1. Audit the code objectively based strictly on observable evidence in this repository.
    - If this is a Frontend-only React app, DO NOT invent backend database or Redis flaws unless justified by explicit dependencies or endpoints.
    - If this repository does not have a checkout endpoint, DO NOT invent checkout-specific flaws.
+   - Calibrate defect severity to both company standards and the target role scope.
 2. Generate valid Mermaid.js diagrams for Current Architecture vs Target Hardened Architecture (use 'graph TD' with simple alphanumeric node IDs).
 3. Produce a runnable Node.js test script targeting real discovered endpoints or state operations in this repo.
-4. Provide 3 tough interview questions directly relevant to this repository's tech stack and company rubric.
+4. Provide 3 tough interview questions directly relevant to this repository's tech stack, company rubric, and the candidate's target role.
 
 Return strictly JSON matching this structure:
 {
@@ -149,6 +159,7 @@ Return strictly JSON matching this structure:
     return {
       repoSummary: overview,
       companyProfile: company,
+      targetRole: targetRole,
       overallScore: Math.min(100, Math.max(0, parsed.overallScore || 70)),
       findings: [
         ...staticFindings.filter((f) => f.severity !== "optimization"),
@@ -175,7 +186,7 @@ Return strictly JSON matching this structure:
       },
     };
   } catch {
-    return generateFallbackAudit(overview, files, company, staticFindings, stack);
+    return generateFallbackAudit(overview, files, company, staticFindings, stack, targetRole);
   }
 }
 
@@ -220,7 +231,8 @@ export function generateFallbackAudit(
   files: RepoFile[],
   company: CompanyProfile,
   staticFindings: AuditFinding[],
-  stack?: DetectedStack
+  stack?: DetectedStack,
+  targetRole?: import("@/types/audit").TargetRole
 ): AuditResponse {
   const detectedStack = stack || detectRepositoryStack(files);
   const isFrontendOnly = detectedStack.type === "frontend_react" || detectedStack.type === "frontend_vue";
@@ -413,6 +425,41 @@ runLoad();`,
     ];
   }
 
+  // Role-specific tailored interview defense additions
+  if (targetRole) {
+    if (targetRole.id === "qa_automation" || targetRole.focusAreas.some((a) => a.toLowerCase().includes("test"))) {
+      interviewDefense.unshift({
+        question: `For this codebase, how would you design an automated regression harness against ${company.name} scale failures?`,
+        interviewerIntent: `Tests specialized QA/Test Engineering strategy, mock boundaries, and deterministic test fixtures.`,
+        talkingPoints: [
+          `Implement end-to-end synthetic health transactions run against staging environments.`,
+          `Mock third-party gateways to test network partitions, timeout drops, and 500 status codes.`,
+          `Integrate the generated stress test harness into CI/CD pre-merge gate pipelines.`,
+        ],
+      });
+    } else if (targetRole.id === "devops_platform" || targetRole.focusAreas.some((a) => a.toLowerCase().includes("pipeline") || a.toLowerCase().includes("container"))) {
+      interviewDefense.unshift({
+        question: `How would you containerize this ${detectedStack.type} service and secure secrets in production at ${company.name}?`,
+        interviewerIntent: `Tests platform engineering maturity, 12-factor config hygiene, and zero-trust secret rotation.`,
+        talkingPoints: [
+          `Build multi-stage Dockerfiles with unprivileged non-root users (distroless or alpine).`,
+          `Inject secrets via runtime KMS / Vault instead of baking environment variables in images.`,
+          `Configure liveness and readiness probe timeouts aligned with process initialization.`,
+        ],
+      });
+    } else if (targetRole.experienceLevel === "internship" || targetRole.experienceLevel === "entry_level") {
+      interviewDefense.push({
+        question: `What fundamental software craftsmanship and testing practices would you introduce first to this repository?`,
+        interviewerIntent: `Evaluates foundational discipline, clean code structure, and awareness of technical debt for an early-career engineer.`,
+        talkingPoints: [
+          `Establish strict TypeScript types and eliminate any loose typing or unhandled Promise rejections.`,
+          `Set up pre-commit lint and formatting hooks alongside unit tests for core business logic.`,
+          `Document explicit system assumptions in architecture READMEs with clear boundary definitions.`,
+        ],
+      });
+    }
+  }
+
   // Dynamic Mermaid Diagrams
   const currentMermaid = generateDynamicMermaid(detectedStack, "current");
   const targetMermaid = generateDynamicMermaid(detectedStack, "target");
@@ -420,6 +467,7 @@ runLoad();`,
   return {
     repoSummary: overview,
     companyProfile: company,
+    targetRole: targetRole,
     overallScore: dynamicFindings.some((f) => f.severity === "critical") ? 62 : 82,
     findings: dynamicFindings,
     architectureComparison: {
