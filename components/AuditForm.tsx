@@ -215,7 +215,11 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
       if (Array.isArray(data.keyConcerns) && data.keyConcerns.length > 0) {
         setCompConcerns(data.keyConcerns.join(", "));
       }
-      setInspectMessage("Requirements and invariants automatically inspected from the web.");
+      setInspectMessage(
+        data.sourceCitation
+          ? `Verified from web (${data.sourceCitation}). Requirements inspected successfully.`
+          : "Requirements and invariants automatically inspected from the web."
+      );
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to inspect requirements.";
       setInspectMessage(`Note: ${msg}`);

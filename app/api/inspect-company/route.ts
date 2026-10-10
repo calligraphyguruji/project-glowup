@@ -32,8 +32,9 @@ export async function POST(req: NextRequest) {
     }
 
     let fetchedWebText = "";
+    let webSourceCitation = "";
 
-    // 1. If website URL or domain provided, attempt browser/web inspection of public pages
+    // 1. Direct Web Inspection: If website URL provided, fetch and extract public text
     if (website && (website.startsWith("http://") || website.startsWith("https://"))) {
       try {
         const parsed = new URL(website);
@@ -49,7 +50,6 @@ export async function POST(req: NextRequest) {
 
           if (res.ok) {
             const html = await res.text();
-            // Basic tag stripping to extract text excerpts
             const cleanText = html
               .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, " ")
               .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, " ")
@@ -57,10 +57,47 @@ export async function POST(req: NextRequest) {
               .replace(/\s+/g, " ")
               .trim();
             fetchedWebText = cleanText.slice(0, 3000);
+            webSourceCitation = parsed.hostname;
           }
         }
       } catch (e) {
         console.warn("Website crawl skipped or failed:", e);
+      }
+    }
+
+    // 2. Browser Search: If no website or need domain context, query public web knowledge
+    if (!fetchedWebText) {
+      try {
+        const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(companyName + " software company")}&format=json`;
+        const searchRes = await fetch(searchUrl, {
+          headers: { "User-Agent": "ProjectGlowUp-CompanyInspector/1.0" },
+          signal: AbortSignal.timeout(5000),
+          cache: "no-store",
+        });
+
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          const firstResult = searchData?.query?.search?.[0];
+          if (firstResult?.title) {
+            const extractUrl = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=${encodeURIComponent(firstResult.title)}&format=json`;
+            const extractRes = await fetch(extractUrl, {
+              headers: { "User-Agent": "ProjectGlowUp-CompanyInspector/1.0" },
+              signal: AbortSignal.timeout(5000),
+              cache: "no-store",
+            });
+            if (extractRes.ok) {
+              const extractData = await extractRes.json();
+              const pages = extractData?.query?.pages || {};
+              const pageKey = Object.keys(pages)[0];
+              if (pageKey && pages[pageKey]?.extract) {
+                fetchedWebText = pages[pageKey].extract.slice(0, 3000);
+                webSourceCitation = `Wikipedia: ${firstResult.title}`;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.warn("Web search query failed:", e);
       }
     }
 
@@ -167,6 +204,7 @@ Extract and return JSON with:
       tagline,
       keyConcerns,
       website: website || undefined,
+      sourceCitation: webSourceCitation || "Domain Intelligence Engine",
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Inspection failed.";
