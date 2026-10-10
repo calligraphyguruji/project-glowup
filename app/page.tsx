@@ -1,47 +1,143 @@
-import React from "react";
-import { Terminal, ShieldCheck, Sparkles, GitBranch } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { AuditForm } from "@/components/AuditForm";
+import { FindingsView } from "@/components/FindingsView";
+import { MermaidViewer } from "@/components/MermaidViewer";
+import { TestScriptSandbox } from "@/components/TestScriptSandbox";
+import { InterviewDefense } from "@/components/InterviewDefense";
+import { AuditResponse, CompanyId } from "@/types/audit";
 
 export default function Home() {
+  const [auditData, setAuditData] = useState<AuditResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [loadingStep, setLoadingStep] = useState<string>("");
+
+  const handleAudit = async (repoUrl: string, companyId: CompanyId) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setLoadingStep("Connecting to repository & inspecting file tree...");
+
+    try {
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ repoUrl, companyId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error?.message || "Failed to audit repository.");
+      }
+
+      setAuditData(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "An unexpected error occurred.";
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+      setLoadingStep("");
+    }
+  };
+
   return (
-    <main className="min-h-screen px-4 py-12 max-w-5xl mx-auto flex flex-col justify-center items-center text-center">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs font-mono mb-6">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span>Problem Statement 4: Open Innovation</span>
+    <main className="min-h-screen px-4 py-10 max-w-6xl mx-auto space-y-8">
+      {/* Top Banner */}
+      <div className="text-center space-y-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-cyan-500/30 bg-cyan-950/20 text-cyan-400 text-xs font-mono">
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Hackathon Track: Problem Statement 4 — Open Innovation</span>
+        </div>
+
+        <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-white">
+          ProjectGlowUp <span className="text-cyan-400">AI</span>
+        </h1>
+
+        <p className="text-slate-400 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed">
+          Transform generic student tutorial clones into production-grade systems demanded by top tech companies. Real code evidence, interactive architecture diffs, and runnable concurrency tests.
+        </p>
       </div>
 
-      <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-4">
-        ProjectGlowUp <span className="text-cyan-400">AI</span>
-      </h1>
-      
-      <p className="text-slate-400 max-w-2xl text-lg mb-8">
-        Audit student GitHub repositories against real production engineering standards for Razorpay, Swiggy, Zerodha, and Amazon.
-      </p>
+      {/* Input Form */}
+      <AuditForm onAudit={handleAudit} isLoading={isLoading} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full max-w-3xl text-left font-mono text-xs">
-        <div className="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-cyan-400 font-semibold mb-2">
-            <Terminal className="w-4 h-4" />
-            <span>01 Ingestion</span>
+      {/* Loading Progress State */}
+      {isLoading && (
+        <div className="rounded-xl border border-cyan-900/50 bg-slate-900/60 p-6 text-center space-y-4 font-mono">
+          <div className="inline-flex p-3 rounded-full bg-cyan-950 border border-cyan-800 animate-spin text-cyan-400">
+            <RefreshCw className="w-5 h-5" />
           </div>
-          <p className="text-slate-400">Bounded GitHub tree & schema parser with campus CDN fallback.</p>
+          <div>
+            <p className="text-sm text-cyan-300 font-semibold">{loadingStep}</p>
+            <p className="text-xs text-slate-500 mt-1">Executing deterministic rules and synthesizing domain standards...</p>
+          </div>
         </div>
+      )}
 
-        <div className="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-amber-400 font-semibold mb-2">
-            <ShieldCheck className="w-4 h-4" />
-            <span>02 Heuristics</span>
+      {/* Error Banner */}
+      {errorMessage && (
+        <div className="rounded-xl border border-red-900/50 bg-red-950/20 p-5 flex items-start gap-3 text-red-300 font-mono text-xs">
+          <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <span className="font-bold block text-sm mb-1">Audit Failed</span>
+            <p>{errorMessage}</p>
           </div>
-          <p className="text-slate-400">Static rule engine + Gemini Flash structured JSON audit.</p>
         </div>
+      )}
 
-        <div className="p-4 rounded-lg border border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-2 text-emerald-400 font-semibold mb-2">
-            <GitBranch className="w-4 h-4" />
-            <span>03 Architecture</span>
+      {/* Audit Report View */}
+      {auditData && !isLoading && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          {/* Overview Strip */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 backdrop-blur-sm">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-100 font-mono">
+                  {auditData.repoSummary.owner}/{auditData.repoSummary.repo}
+                </h2>
+                <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-cyan-950 text-cyan-300 border border-cyan-800/40">
+                  {auditData.companyProfile.name}
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1">
+                Audited {auditData.repoSummary.filesIngested} key architectural files against {auditData.companyProfile.domain} standards.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-6 self-start sm:self-auto font-mono">
+              <div className="text-right">
+                <span className="text-xs text-slate-400 block">Production Readiness</span>
+                <span className={`text-2xl font-black ${auditData.overallScore >= 70 ? "text-emerald-400" : "text-amber-400"}`}>
+                  {auditData.overallScore}/100
+                </span>
+              </div>
+            </div>
           </div>
-          <p className="text-slate-400">Mermaid.js Before/After diagrams + runnable test scripts.</p>
+
+          {/* Core Findings */}
+          <FindingsView findings={auditData.findings} />
+
+          {/* Architecture Diff */}
+          <MermaidViewer
+            currentMermaid={auditData.architectureComparison.currentMermaid}
+            targetMermaid={auditData.architectureComparison.targetMermaid}
+            currentSummary={auditData.architectureComparison.currentSummary}
+            targetSummary={auditData.architectureComparison.targetSummary}
+          />
+
+          {/* Concurrency Test Harness */}
+          <TestScriptSandbox script={auditData.stressTestScript} />
+
+          {/* Interview Defense */}
+          <InterviewDefense
+            items={auditData.interviewDefense}
+            companyName={auditData.companyProfile.name}
+          />
         </div>
-      </div>
+      )}
     </main>
   );
 }

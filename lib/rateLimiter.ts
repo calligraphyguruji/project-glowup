@@ -19,6 +19,8 @@ if (typeof setInterval !== "undefined") {
   }, 5 * 60 * 1000);
 }
 
+const MAX_TRACKED_IPS = 5000;
+
 export function checkRateLimit(ip: string): {
   allowed: boolean;
   remaining: number;
@@ -28,6 +30,10 @@ export function checkRateLimit(ip: string): {
   let entry = ipStorage.get(ip);
 
   if (!entry) {
+    if (ipStorage.size >= MAX_TRACKED_IPS) {
+      const keysToDelete = Array.from(ipStorage.keys()).slice(0, 1000);
+      keysToDelete.forEach((k) => ipStorage.delete(k));
+    }
     entry = { tokens: maxTokens, lastRefill: now };
     ipStorage.set(ip, entry);
   }

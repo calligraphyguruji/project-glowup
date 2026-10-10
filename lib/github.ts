@@ -59,6 +59,7 @@ export function validateGithubUrl(url: string): { owner: string; repo: string } 
   if (!match) return null;
   const owner = match[1];
   const repo = match[2].replace(/\.git$/, "");
+  if (repo === "." || repo === ".." || owner === "." || owner === "..") return null;
   return { owner, repo };
 }
 
@@ -107,7 +108,7 @@ async function fetchViaCdnFallback(
     const promises = PROBE_FALLBACK_PATHS.map(async (filePath) => {
       try {
         const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${filePath}`;
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
         if (!res.ok) return null;
 
         const text = await res.text();
@@ -179,6 +180,7 @@ export async function fetchRepositoryFiles(
     repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
       headers,
       cache: "no-store",
+      signal: AbortSignal.timeout(8000),
     });
   } catch {
     // Network failure to API -> try CDN fallback
@@ -205,7 +207,11 @@ export async function fetchRepositoryFiles(
   let treeRes: Response;
   try {
     const treeUrl = `https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`;
-    treeRes = await fetch(treeUrl, { headers, cache: "no-store" });
+    treeRes = await fetch(treeUrl, {
+      headers,
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
   } catch {
     return fetchViaCdnFallback(owner, repo);
   }
@@ -245,6 +251,7 @@ export async function fetchRepositoryFiles(
         const rawRes = await fetch(rawUrl, {
           headers: process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {},
           cache: "no-store",
+          signal: AbortSignal.timeout(8000),
         });
 
         if (!rawRes.ok) {

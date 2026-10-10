@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
+    "test": "npx tsx scripts/run-tests.ts",
     "test:ingestion": "npx tsx scripts/test-ingestion.ts"
   },
   "dependencies": {
