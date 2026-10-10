@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import mermaid from "mermaid";
+import { GitCompare, CheckCircle2, AlertTriangle } from "lucide-react";
 
 interface MermaidViewerProps {
   currentMermaid: string;
@@ -18,7 +19,7 @@ export function MermaidViewer({
 }: MermaidViewerProps) {
   const currentContainerRef = useRef<HTMLDivElement>(null);
   const targetContainerRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<"target" | "current" | "diff">("diff");
+  const [activeTab, setActiveTab] = useState<"diff" | "target" | "current">("diff");
   const [renderError, setRenderError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,13 +28,13 @@ export function MermaidViewer({
       theme: "dark",
       themeVariables: {
         darkMode: true,
-        background: "#0F172A",
-        primaryColor: "#0E7490",
-        primaryTextColor: "#F8FAFC",
-        primaryBorderColor: "#06B6D4",
-        lineColor: "#38BDF8",
-        secondaryColor: "#1E293B",
-        tertiaryColor: "#0F172A",
+        background: "#090E19",
+        primaryColor: "#171B27",
+        primaryTextColor: "#DEE2F2",
+        primaryBorderColor: "#00F2FE",
+        lineColor: "#00F2FE",
+        secondaryColor: "#1B1F2B",
+        tertiaryColor: "#090E19",
       },
       securityLevel: "strict",
     });
@@ -53,7 +54,7 @@ export function MermaidViewer({
         }
       } catch (err: unknown) {
         console.warn("Mermaid render warning:", err);
-        setRenderError("Rendering simplified diagram view.");
+        setRenderError("Rendering simplified diagram topology.");
       }
     };
 
@@ -61,83 +62,107 @@ export function MermaidViewer({
   }, [currentMermaid, targetMermaid]);
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-sm">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-slate-100 flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
-            System Architecture Diff (Mermaid.js)
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <GitCompare className="w-4 h-4 text-primary-container" />
+          <h3 className="font-mono text-sm font-semibold text-slate-100 uppercase tracking-wider">
+            Architecture Diff Visualizer
           </h3>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Comparing observed codebase structure against company-hardened production design.
-          </p>
         </div>
 
-        <div className="inline-flex rounded-lg border border-slate-800 bg-slate-950 p-1 text-xs font-mono">
+        <div className="p-0.5 rounded-lg bg-surface-container-high border border-white/5 flex items-center font-mono text-[11px]">
           <button
             onClick={() => setActiveTab("diff")}
-            className={`px-3 py-1 rounded-md transition-colors ${
-              activeTab === "diff" ? "bg-cyan-950 text-cyan-400 font-semibold border border-cyan-800/40" : "text-slate-400 hover:text-slate-200"
+            className={`px-2.5 py-1 rounded transition-colors ${
+              activeTab === "diff"
+                ? "bg-primary-container text-slate-950 font-bold shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            Split Diff
+            SPLIT DIFF
           </button>
           <button
             onClick={() => setActiveTab("target")}
-            className={`px-3 py-1 rounded-md transition-colors ${
-              activeTab === "target" ? "bg-cyan-950 text-cyan-400 font-semibold border border-cyan-800/40" : "text-slate-400 hover:text-slate-200"
+            className={`px-2.5 py-1 rounded transition-colors ${
+              activeTab === "target"
+                ? "bg-primary-container text-slate-950 font-bold shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            Target Only
+            TARGET ONLY
           </button>
           <button
             onClick={() => setActiveTab("current")}
-            className={`px-3 py-1 rounded-md transition-colors ${
-              activeTab === "current" ? "bg-cyan-950 text-cyan-400 font-semibold border border-cyan-800/40" : "text-slate-400 hover:text-slate-200"
+            className={`px-2.5 py-1 rounded transition-colors ${
+              activeTab === "current"
+                ? "bg-primary-container text-slate-950 font-bold shadow-sm"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            Current Only
+            OBSERVED ONLY
           </button>
         </div>
       </div>
 
       {renderError && (
-        <div className="mt-3 px-3 py-2 text-xs rounded border border-amber-800/40 bg-amber-950/20 text-amber-300">
+        <div className="px-3 py-1.5 text-xs rounded bg-surface-container-high text-amber-300 font-mono">
           {renderError}
         </div>
       )}
 
-      <div className={`mt-5 grid gap-5 ${activeTab === "diff" ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
-        <div className={`rounded-lg border border-red-950/40 bg-slate-950/80 p-4 ${activeTab === "target" ? "hidden" : "block"}`}>
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <span className="text-xs font-mono uppercase tracking-wider text-red-400 font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Observed Architecture (Tutorial Clone)
-            </span>
+      {/* Dual Physical Chambers */}
+      <div className={`grid gap-3 ${activeTab === "diff" ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+        {/* Observed Flawed Substrate */}
+        <div
+          className={`p-1.5 rounded-xl bg-surface-container-low border border-white/5 shadow-sm ${
+            activeTab === "target" ? "hidden" : "block"
+          }`}
+        >
+          <div className="p-3 rounded-lg bg-surface-container-lowest flex flex-col gap-2 h-full">
+            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-error"></span>
+                <span className="font-mono text-[10px] text-error uppercase font-bold tracking-wider">
+                  OBSERVED IN SUBMISSION
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-error/80 uppercase">Fragile Direct Coupling</span>
+            </div>
+            {currentSummary && (
+              <p className="font-sans text-xs text-slate-400 leading-relaxed">{currentSummary}</p>
+            )}
+            <div
+              ref={currentContainerRef}
+              className="overflow-x-auto min-h-[160px] flex items-center justify-center text-center p-2 rounded bg-surface-container-low/50 [&_svg]:max-w-full"
+            />
           </div>
-          {currentSummary && (
-            <p className="text-xs text-slate-400 mt-2 mb-3 leading-relaxed">{currentSummary}</p>
-          )}
-          <div
-            ref={currentContainerRef}
-            className="overflow-x-auto min-h-[180px] flex items-center justify-center text-center [&_svg]:max-w-full"
-          />
         </div>
 
-        <div className={`rounded-lg border border-emerald-950/40 bg-slate-950/80 p-4 ${activeTab === "current" ? "hidden" : "block"}`}>
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-            <span className="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-              Target Hardened Architecture (Production)
-            </span>
+        {/* Target Hardened Production Substrate */}
+        <div
+          className={`p-1.5 rounded-xl bg-surface-container-low border border-white/5 shadow-sm ${
+            activeTab === "current" ? "hidden" : "block"
+          }`}
+        >
+          <div className="p-3 rounded-lg bg-surface-container-lowest flex flex-col gap-2 h-full">
+            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-tertiary-container shadow-[0_0_6px_rgba(55,248,170,0.6)]"></span>
+                <span className="font-mono text-[10px] text-tertiary-container uppercase font-bold tracking-wider">
+                  TARGET PRODUCTION TOPOLOGY
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-tertiary-container/80 uppercase">Idempotent Pipeline</span>
+            </div>
+            {targetSummary && (
+              <p className="font-sans text-xs text-slate-400 leading-relaxed">{targetSummary}</p>
+            )}
+            <div
+              ref={targetContainerRef}
+              className="overflow-x-auto min-h-[160px] flex items-center justify-center text-center p-2 rounded bg-surface-container-low/50 [&_svg]:max-w-full"
+            />
           </div>
-          {targetSummary && (
-            <p className="text-xs text-slate-400 mt-2 mb-3 leading-relaxed">{targetSummary}</p>
-          )}
-          <div
-            ref={targetContainerRef}
-            className="overflow-x-auto min-h-[180px] flex items-center justify-center text-center [&_svg]:max-w-full"
-          />
         </div>
       </div>
     </div>

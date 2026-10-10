@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Sparkles, Building2, AlertCircle, ArrowRight } from "lucide-react";
+import { AlertCircle, ArrowRight, ShieldCheck, Terminal, Cpu } from "lucide-react";
 import { CompanyId } from "@/types/audit";
 import { COMPANY_PROFILES } from "@/lib/companies";
 
@@ -19,7 +19,7 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
     e.preventDefault();
     const trimmed = repoUrl.trim();
     if (!trimmed) {
-      setUrlError("Please enter a GitHub repository URL.");
+      setUrlError("Please specify a GitHub repository URI.");
       return;
     }
     if (!trimmed.startsWith("https://github.com/")) {
@@ -38,14 +38,21 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-6 backdrop-blur-sm shadow-xl">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Repo Input */}
-        <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold mb-2">
-            Target GitHub Repository
-          </label>
-          <div className="relative">
+    <div className="flex flex-col gap-4">
+      {/* Double-Bezel Physical Ingest Chassis */}
+      <div className="p-1.5 rounded-xl bg-surface-variant/40 shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] ring-1 ring-white/5">
+        <form onSubmit={handleSubmit} className="rounded-lg bg-surface-container-lowest p-3 sm:p-4 flex flex-col gap-3 shadow-inner">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-2">
+              <span className="text-secondary-container font-bold">STACKFIT&gt;</span>
+              <span className="text-slate-400 uppercase tracking-wider text-[11px]">TARGET REPOSITORY URI</span>
+            </div>
+            <span className="text-[11px] text-slate-400 bg-surface-container-high px-2 py-0.5 rounded border border-white/5 font-mono">
+              ⌘K / ENTER
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <input
               type="text"
               value={repoUrl}
@@ -53,99 +60,113 @@ export function AuditForm({ onAudit, isLoading }: AuditFormProps) {
                 setRepoUrl(e.target.value);
                 if (urlError) setUrlError(null);
               }}
-              placeholder="https://github.com/username/project-repo"
-              className="w-full px-4 py-3 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-500 font-mono text-sm focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+              placeholder="https://github.com/username/service-repository"
+              className="flex-1 bg-surface-container-low px-3 py-2.5 rounded text-sm text-primary placeholder-slate-500 font-mono focus:outline-none focus:ring-1 focus:ring-primary-container border border-white/5 transition-all"
               disabled={isLoading}
             />
             <button
               type="submit"
               disabled={isLoading}
-              className="absolute right-2 top-2 bottom-2 px-4 rounded-md bg-cyan-500 hover:bg-cyan-400 disabled:bg-slate-800 text-slate-950 disabled:text-slate-500 font-semibold text-xs flex items-center gap-1.5 transition-all shadow-md"
+              className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded bg-primary-container hover:bg-[#3bf5ff] text-slate-950 font-sans font-semibold text-xs shadow-md active:scale-[0.98] disabled:bg-surface-container-high disabled:text-slate-500 transition-all uppercase tracking-wider"
             >
-              {isLoading ? (
-                <span>Auditing...</span>
-              ) : (
-                <>
-                  <span>Audit Codebase</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </>
-              )}
+              <Cpu className="w-4 h-4" />
+              <span>{isLoading ? "Ingesting..." : "Ingest AST →"}</span>
             </button>
           </div>
 
           {urlError && (
-            <p className="mt-1.5 text-xs text-red-400 flex items-center gap-1 font-mono">
+            <p className="text-xs text-error flex items-center gap-1.5 font-mono">
               <AlertCircle className="w-3.5 h-3.5" />
               {urlError}
             </p>
           )}
 
-          {/* 1-Click Live Demo Presets */}
-          <div className="mt-3 flex items-center gap-2 flex-wrap text-xs">
-            <span className="text-slate-400 text-[11px] font-mono">Demo Presets:</span>
+          {/* Quick Presets Strip */}
+          <div className="flex items-center gap-2 overflow-x-auto pt-1 pb-0.5 text-xs font-mono">
+            <span className="text-slate-500 text-[11px] shrink-0 uppercase tracking-wider">Presets:</span>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/expressjs/express", "razorpay")}
-              className="px-2.5 py-1 rounded border border-cyan-800/40 bg-cyan-950/30 text-cyan-400 hover:bg-cyan-900/40 text-[11px] font-mono transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
             >
-              ⚡ Express → Razorpay
+              <span className="text-tertiary-container">⚡</span> Express.js → Razorpay (Ledger)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/fastify/fastify", "swiggy")}
-              className="px-2.5 py-1 rounded border border-amber-800/40 bg-amber-950/30 text-amber-400 hover:bg-amber-900/40 text-[11px] font-mono transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
             >
-              ⚡ Fastify → Swiggy
+              <span className="text-secondary">⚡</span> Fastify → Swiggy (Spatial)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/tiangolo/fastapi", "zerodha")}
-              className="px-2.5 py-1 rounded border border-emerald-800/40 bg-emerald-950/30 text-emerald-400 hover:bg-emerald-900/40 text-[11px] font-mono transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
             >
-              ⚡ FastAPI → Zerodha
+              <span className="text-primary-container">⚡</span> FastAPI → Zerodha (Locks)
             </button>
             <button
               type="button"
               onClick={() => loadPreset("https://github.com/facebook/react", "amazon")}
-              className="px-2.5 py-1 rounded border border-blue-800/40 bg-blue-950/30 text-blue-400 hover:bg-blue-900/40 text-[11px] font-mono transition-colors"
+              className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded bg-surface-container-low hover:bg-surface-container text-slate-300 text-[11px] border border-white/5 transition-colors"
             >
-              ⚡ React → Amazon Cloud
+              <span className="text-tertiary">⚡</span> React → AWS (Partitioning)
             </button>
           </div>
-        </div>
+        </form>
+      </div>
 
-        {/* Target Company Selector */}
-        <div>
-          <label className="block text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold mb-2">
-            Select Target Company Rubric
-          </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {(Object.keys(COMPANY_PROFILES) as CompanyId[]).map((cId) => {
-              const comp = COMPANY_PROFILES[cId];
-              const isSelected = companyId === cId;
-              return (
-                <button
-                  key={cId}
-                  type="button"
-                  onClick={() => setCompanyId(cId)}
-                  disabled={isLoading}
-                  className={`p-3.5 rounded-lg border text-left transition-all ${
-                    isSelected
-                      ? "border-cyan-500 bg-cyan-950/30 ring-1 ring-cyan-500/50"
-                      : "border-slate-800 bg-slate-950/60 hover:border-slate-700"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-bold text-sm text-slate-100">{comp.name}</span>
-                    <Building2 className={`w-3.5 h-3.5 ${isSelected ? "text-cyan-400" : "text-slate-500"}`} />
-                  </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-1">{comp.domain}</p>
-                </button>
-              );
-            })}
-          </div>
+      {/* Target Rubric Matrix (4 Selectable Tiles) */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">
+            SELECT TARGET INVARIANT MATRIX
+          </span>
+          <span className="text-[10px] font-mono text-slate-500 uppercase">CALIBRATED TO PRODUCTION RFCs</span>
         </div>
-      </form>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          {(Object.keys(COMPANY_PROFILES) as CompanyId[]).map((cId, idx) => {
+            const comp = COMPANY_PROFILES[cId];
+            const isSelected = companyId === cId;
+            return (
+              <button
+                key={cId}
+                type="button"
+                onClick={() => setCompanyId(cId)}
+                disabled={isLoading}
+                className={`p-1 rounded-xl transition-all text-left ${
+                  isSelected
+                    ? "bg-primary-container/20 ring-1 ring-primary-container/60 shadow-[0_0_12px_rgba(0,242,254,0.15)]"
+                    : "bg-surface-variant/20 hover:bg-surface-variant/40 border border-white/5"
+                }`}
+              >
+                <div className="rounded-lg bg-surface-container-low p-3 flex flex-col justify-between h-full gap-2">
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isSelected
+                          ? "bg-primary-container shadow-[0_0_6px_rgba(0,242,254,0.8)]"
+                          : "bg-slate-600"
+                      }`}
+                    ></span>
+                    <span className="font-mono text-[10px] text-slate-400 uppercase tracking-widest">
+                      INVARIANT_0{idx + 1}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-mono text-sm font-semibold text-slate-100 truncate">
+                      {comp.name}
+                    </h3>
+                    <p className="font-sans text-[11px] text-slate-400 line-clamp-1 mt-0.5 leading-snug">
+                      {comp.domain}
+                    </p>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
