@@ -80,10 +80,23 @@ export default function Home() {
         activeTab={activeTab}
         onTabChange={(tab) => {
           setActiveTab(tab);
-          // If user clicked a specific tab and an audit is active, smoothly view that segment
-          if (auditData && tab !== "overview" && tab !== "analysis") {
+          if (tab === "overview") {
+            const targetEl = document.getElementById("section-overview");
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          } else if (tab === "analysis") {
+            const targetEl = document.getElementById("section-analysis");
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          } else if (auditData) {
             const targetEl = document.getElementById(`section-${tab}`);
-            if (targetEl) targetEl.scrollIntoView({ behavior: "smooth" });
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
           }
         }}
         findingsCount={totalFindingsCount}
@@ -168,7 +181,7 @@ export default function Home() {
           {auditData && !isLoading && (
             <div className="space-y-8 animate-in fade-in duration-300">
               {/* Telemetry Header Strip */}
-              <div className="bg-[#101114] border border-[#292A31] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div id="section-overview" className="bg-[#101114] border border-[#292A31] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex flex-wrap items-center gap-2.5">
                     <h2 className="font-mono text-lg font-bold text-[#F5F5F6]">
@@ -204,7 +217,7 @@ export default function Home() {
               </div>
 
               {/* Redmonk Telemetry Metrics Bar */}
-              <div id="section-overview">
+              <div>
                 <MetricsOverview audit={auditData} />
               </div>
 
